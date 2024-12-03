@@ -116,5 +116,4 @@ tmtags
 *.app
 /.cproject
 /.project
-./src/jetbackground
-./src/jetbase
+
