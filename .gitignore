@@ -1,52 +1,111 @@
+
+# for dstlists
+*.list
+
+# for root files
+*.root
+
+# for plots
+*.png
+*.pdf
+*.jpg 
+
+# condor logs
+*.err
+*.out
+log/
+
 # http://www.gnu.org/software/automake
 
 Makefile.in
-/ar-lib
-/mdate-sh
-/py-compile
-/test-driver
-/ylwrap
-.deps/
-.dirstamp
 
 # http://www.gnu.org/software/autoconf
 
 autom4te.cache
-/autoscan.log
-/autoscan-*.log
-/aclocal.m4
-/compile
-/config.cache
-/config.guess
-/config.h.in
-/config.log
-/config.status
-/config.sub
-/configure
-/configure.scan
-/depcomp
-/install-sh
-/missing
-/stamp-h1
+aclocal.m4
+compile
+configure
+depcomp
+install-sh
+missing
+stamp-h1
 
-# https://www.gnu.org/software/libtool/
+config.guess
+config.sub
+ltmain.sh
 
-/ltmain.sh
+build
 
-# http://www.gnu.org/software/texinfo
+# Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore: 
+#
+# * Create a file at ~/.gitignore
+# * Include files you want ignored
+# * Run: git config --global core.excludesfile ~/.gitignore
+#
+# After doing this, these files will be ignored in all your git projects,
+# saving you from having to 'pollute' every project you touch with them
+#
+# For MacOS:
+#
+.DS_Store
 
-/texinfo.tex
+# ignore RVM configuration
+.rvmrc
 
-# http://www.gnu.org/software/m4/
+# For TextMate
+*.tmproj
+tmtags
 
-m4/libtool.m4
-m4/ltoptions.m4
-m4/ltsugar.m4
-m4/ltversion.m4
-m4/lt~obsolete.m4
+# For emacs:
+*~
+\#*
+.\#*
 
-# Generated Makefile
-# (meta build system like autotools,
-# can automatically generate from config.status script
-# (which is called by configure script))
-Makefile
+# For vim:
+*.swp
+
+#for vscode
+.vscode
+._*
+
+# For redcar:
+.redcar
+
+# For rubinius:
+*.rbc
+
+# standard C++ Git igore
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+*.pcm
+*_Dict.cc
+*.status
+
+# Executables
+*.exe
+*.out
+*.app
+/.cproject
+/.project
