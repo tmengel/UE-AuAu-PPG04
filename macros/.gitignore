@@ -1,0 +1,13 @@
+# macros gitignore
+
+*.root
+rootfiles/
+
+*.png
+*.pdf
+
+*.list
+filelists/
+
+# external repo
+macros/

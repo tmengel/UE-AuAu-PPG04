@@ -1,0 +1,8 @@
+# src gitignore
+# ignore external repositories
+coresoftware/
+analysis/
+jetbackground/
+jetbase/
+./jetbackground
+./jetbase

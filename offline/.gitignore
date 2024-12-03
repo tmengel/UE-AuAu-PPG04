@@ -1,0 +1,10 @@
+# offline gitignore
+
+*.root
+rootfiles/
+
+*.png
+*.pdf
+plots/
+
+*.list

@@ -1,3 +1,9 @@
+# sphenix external dir
+sphenix-base/
+
+
+# install
+install/
 
 # for dstlists
 *.list
@@ -14,6 +20,7 @@
 *.err
 *.out
 log/
+condor/
 
 # http://www.gnu.org/software/automake
 
@@ -109,3 +116,5 @@ tmtags
 *.app
 /.cproject
 /.project
+./src/jetbackground
+./src/jetbase
