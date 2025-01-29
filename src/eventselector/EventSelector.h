@@ -29,12 +29,12 @@ class EventSelector : public SubsysReco
 
     // Interface for adding and removing cuts
     void AddCut(EventCut * cut);
-    void AddCuts(const std::vector<EventCut* > &cuts);
-    EventCut *GetCut(const std::string &name);
-    void RemoveCut(const std::string &name);
+    void AddCuts( const std::vector<EventCut* > &cuts );
+    EventCut * GetCut( const std::string &name );
+    void RemoveCut( const std::string &name );
 
     // Print the cuts
-    void PrintCuts(std::ostream &os = std::cout) const;
+    void PrintCuts( std::ostream &os = std::cout ) const;
 
     // Standard Fun4All functions
     int InitRun(PHCompositeNode *topNode) override;

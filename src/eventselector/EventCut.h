@@ -21,9 +21,7 @@ class EventCut
   public:
 
     virtual ~EventCut() {}
-
     virtual void identify(std::ostream &os = std::cout) const { os << "EventCut::" << Name() << std::endl; }
-    
     void clear(){ Passed(false); }
   
     // setters
