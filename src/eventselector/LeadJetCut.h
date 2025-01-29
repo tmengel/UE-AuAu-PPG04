@@ -13,12 +13,12 @@
 
 class PHCompositeNode;
 
-class LeadTruthJetCut  : public EventCut
+class LeadJetCut  : public EventCut
 {
   public:
 
-    LeadTruthJetCut(float high, float low);
-    ~LeadTruthJetCut() override {}
+    LeadJetCut() : EventCut("LeadJetCut") {}
+    ~LeadJetCut() override {}
 
     void identify(std::ostream &os = std::cout) const override;
     bool operator()(PHCompositeNode* topNode) override;

@@ -14,7 +14,7 @@ pkginclude_HEADERS = \
   EventCut.h \
   EventCutReport.h \
   EventSelector.h \
-  LeadTruthJetCut.h \
+  LeadJetCut.h \
   MinBiasCut.h \
   TowerChi2Cut.h \
   ZVertexCut.h
@@ -25,7 +25,7 @@ lib_LTLIBRARIES = \
 libeventselection_la_SOURCES = \
   EventCutReport.cc \
   EventSelector.cc \
-  LeadTruthJetCut.cc \
+  LeadJetCut.cc \
   MinBiasCut.cc \
   TowerChi2Cut.cc \
   ZVertexCut.cc
