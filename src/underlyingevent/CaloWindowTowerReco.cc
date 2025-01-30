@@ -66,8 +66,9 @@ int CaloWindowTowerReco::Init(PHCompositeNode *topNode)
   }
 
   if ( m_window_names.empty() ) {
-    for ( auto &input : m_inputs ) {
-      m_window_names.push_back(input + "_CALOWINDOWMAP");
+    for ( auto &src : m_srcs ) {
+      std::string name = UEDefs::GetCaloTowerNode(src, "");
+      m_window_names.push_back(m_window_prefix+name);
     }
   }
 

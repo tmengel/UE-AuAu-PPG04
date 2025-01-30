@@ -7,6 +7,8 @@
 /// \author Tanner Mengel
 //===========================================================
 
+#include "UEDefs.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -29,7 +31,18 @@ class RandomConeTowerReco : public SubsysReco
     int Init(PHCompositeNode * topNode) override;
     int process_event(PHCompositeNode * topNode) override;
 
-    void add_input_node( const std::string &name, const std::string &geom_name, Jet::SRC src){ m_inputs.push_back(name); m_geom_names.push_back(geom_name); m_srcs.push_back(src); }
+    void add_input( Jet::SRC src, const std::string & prefix = "TOWERINFO_CALIB" ) {
+      std::string name = UEDefs::GetCaloTowerNode(src, prefix);
+      std::string geom_name = UEDefs::GetCaloGeomNode(src);
+      m_inputs.push_back(name);
+      m_geom_names.push_back(geom_name);
+      m_srcs.push_back(src);
+    }
+    void add_input( const std::string &name, const std::string &geom_name, Jet::SRC src ) {
+      m_inputs.push_back(name);
+      m_geom_names.push_back(geom_name);
+      m_srcs.push_back(src);
+    }
     void set_output_node( const std::string &name ) { m_output_node = name; }
 
     void set_R(const float R) { m_R = R; }

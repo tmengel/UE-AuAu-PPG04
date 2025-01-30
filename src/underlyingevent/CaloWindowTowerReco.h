@@ -7,6 +7,8 @@
 /// \author Tanner Mengel
 //===========================================================
 
+#include "UEDefs.h"
+
 #include <fun4all/SubsysReco.h>
 
 #include <string>
@@ -28,14 +30,27 @@ class CaloWindowTowerReco : public SubsysReco
     int Init(PHCompositeNode * topNode) override;
     int process_event(PHCompositeNode * topNode) override;
 
-    void add_input_node( const std::string &name, const std::string &geom_name, Jet::SRC src){ m_inputs.push_back(name); m_geom_names.push_back(geom_name); m_srcs.push_back(src); }
-    void add_window_node( const std::string &name){ m_window_names.push_back(name); }
+    void add_input( Jet::SRC src, const std::string & prefix = "TOWERINFO_CALIB" ) {
+      std::string name = UEDefs::GetCaloTowerNode(src, prefix);
+      std::string geom_name = UEDefs::GetCaloGeomNode(src);
+      m_inputs.push_back(name);
+      m_geom_names.push_back(geom_name);
+      m_srcs.push_back(src);
+    }
+    void add_input( const std::string &name, const std::string &geom_name, Jet::SRC src ) {
+      m_inputs.push_back(name);
+      m_geom_names.push_back(geom_name);
+      m_srcs.push_back(src);
+    }
+
+    void set_window_prefix( const std::string &prefix ) { m_window_prefix = prefix; }
 
   private:
 
     std::vector<std::string> m_inputs {}; // input node names
     std::vector<std::string> m_geom_names {}; // geometry node names
     std::vector<Jet::SRC> m_srcs {}; // source of input
+    std::string m_window_prefix {"CaloWindowMap"}; // prefix for window nodes
     std::vector<std::string> m_window_names {}; // window names
 
     static const int neta_ihcal = 24;

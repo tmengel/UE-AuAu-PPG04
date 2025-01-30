@@ -33,6 +33,7 @@ libunderlyingevent_la_LIBADD = \
   -lSubsysReco
 
 pkginclude_HEADERS = \
+  UEDefs.h \
   CaloWindowTowerReco.h \
   CaloWindowMap.h \
   CaloWindowMapv1.h \
@@ -59,6 +60,7 @@ libunderlyingevent_io_la_SOURCES = \
   RandomConev1.cc 
 
 libunderlyingevent_la_SOURCES = \
+  UEDefs.cc \
   CaloWindowTowerReco.cc \
   RandomConeTowerReco.cc 
 
