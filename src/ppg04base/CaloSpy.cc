@@ -37,15 +37,21 @@ int CaloSpy::Init(PHCompositeNode * /*topNode*/)
 
     for (unsigned int i = 0; i < m_caloNodes.size(); i++)
     {
+      int n_phi = 64;
+      int n_eta = 24;
+      if ( m_caloNodes[i].find("CEMC") != std::string::npos && m_caloNodes[i].find("RETOWER") == std::string::npos ) {
+        n_phi = 256;
+        n_eta = 96;
+      }
       TH2F *h2d = new TH2F(Form("h2d_%s", m_caloNodes[i].c_str()), Form("%s;#eta;#phi", m_caloNodes[i].c_str()),
-          m_nphi[i], -0.5, m_nphi[i] - 0.5, m_neta[i], -0.5, m_neta[i] - 0.5);
+          n_phi, -0.5, n_phi - 0.5, n_eta, -0.5, n_eta - 0.5);
       h2d->GetYaxis()->SetTitle("#eta");
       h2d->GetXaxis()->SetTitle("#phi");
       h2d->GetZaxis()->SetTitle("Energy [GeV]");
       m_h2d_tower_e_eta_phi.push_back(h2d);
 
       TH2F *h2dead = new TH2F(Form("h2d_%s_DEAD", m_caloNodes[i].c_str()), Form("%s DEAD;#eta;#phi", m_caloNodes[i].c_str()),
-          m_nphi[i], -0.5, m_nphi[i] - 0.5, m_neta[i], -0.5, m_neta[i] - 0.5);
+           n_phi, -0.5, n_phi - 0.5, n_eta, -0.5, n_eta - 0.5);;
       h2dead->GetYaxis()->SetTitle("#eta");
       h2dead->GetXaxis()->SetTitle("#phi");
       h2dead->GetZaxis()->SetTitle("Energy [GeV]");

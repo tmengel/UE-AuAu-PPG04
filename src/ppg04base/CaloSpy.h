@@ -19,10 +19,7 @@ class CaloSpy : public SubsysReco
    CaloSpy(const std::string &outputfile = "output.root");
    ~CaloSpy() override {};
 
-   void AddCaloNode(const std::string &name, int nphi, int neta) { m_caloNodes.push_back(name); 
-      m_nphi.push_back(nphi); 
-      m_neta.push_back(neta);
-   }
+   void AddCaloNode(const std::string &name) { m_caloNodes.push_back(name); }
 
    void Normalize( bool do_norm = true ) { m_do_norm = do_norm; }
 
@@ -39,8 +36,6 @@ class CaloSpy : public SubsysReco
    bool m_do_norm {false};
    std::vector< TH2 *> m_h2d_tower_e_eta_phi {};
    std::vector< TH2 *> m_h2d_tower_e_eta_phi_dead {};
-   std::vector< int > m_nphi {};
-   std::vector< int > m_neta {};
    int m_nevents {0};
 };
 
