@@ -199,8 +199,6 @@ void ProcessCaloHistograms()
 
 }
 
-
-
 void QuickBins(const int N, const float min, const float max, float *bins){
     if (min >= max) {
         std::cout << "Error: min >= max" << std::endl;
@@ -269,6 +267,11 @@ void ProcessGlobal(){
     std::vector<float> * tbackground_cemc = 0;
     std::vector<float> * tbackground_ihcal = 0;
     std::vector<float> * tbackground_ohcal = 0;
+    float mbd_n,mbs_s;
+    int cent = 0;
+    t->SetBranchAddress("centrality", &cent);
+    t->SetBranchAddress("mbd_q_N", &mbd_n);
+    t->SetBranchAddress("mbd_q_S", &mbs_s);
     t->SetBranchAddress("tower_sum_energy_TOWERINFO_CALIB_CEMC", &cemc_e);
     t->SetBranchAddress("tower_sum_energy_TOWERINFO_CALIB_HCALIN", &ihcal_e);
     t->SetBranchAddress("tower_sum_energy_TOWERINFO_CALIB_HCALOUT", &ohcal_e);
@@ -318,9 +321,9 @@ void ProcessGlobal(){
     t->SetBranchAddress("num_windows_hcalout", &num_windows_hcalout);
 
     int nentries = t->GetEntries();
-    const int NET_BINS =200;
+    const int NET_BINS =20;
     float et_bins[NET_BINS+1];
-    double step = 2000/NET_BINS; 
+    double step = 100/NET_BINS; 
     for ( int i = 0; i < NET_BINS+1; ++i ) {
         et_bins[i] = i*step;
     }
@@ -351,17 +354,19 @@ void ProcessGlobal(){
 // }; 
 
     
-    const int AVG_ET_BINS = 20000;
-    float avgbins[AVG_ET_BINS+1];
-    const double MAX_AVG  = 150;
-    step = MAX_AVG/AVG_ET_BINS;
-    for ( int i = 0; i < AVG_ET_BINS+1; ++i ) {
-        avgbins[i] = i*step;
-    }
+    // const int AVG_ET_BINS = 20000;
+    // float avgbins[AVG_ET_BINS+1];
+    // const double MAX_AVG  = 150;
+    // step = MAX_AVG/AVG_ET_BINS;
+    // for ( int i = 0; i < AVG_ET_BINS+1; ++i ) {
+    //     avgbins[i] = i*step;
+    // }
 
-    
-    const std::vector < std::pair < unsigned int, unsigned int > > calo_window_dims_hcal_geom = {
-        {1,1}, {3,4}, {11,12}
+    const std::vector < std::pair < unsigned int, unsigned int > > k_calo_window_dims_hcal_geom = {
+    {1,1}, {2,2}, {3,4}, {5,6}, {7,8}, {9,10}, {11,12}, {13,13}, {15,15}, {17,17}, {20,20}
+}; 
+    const std::vector <std::pair < unsigned int, unsigned int > > calo_window_dims_hcal_geom = {
+        {1,1}, {2,2}, {3,4}, {5,6}, {7,8}, {9,10}, {11,12}, {13,13}, {15,15},
     };
     const unsigned int window_array_size = calo_window_dims_hcal_geom.size(); 
     std::vector<unsigned int> window_array_idx{};
@@ -378,12 +383,15 @@ void ProcessGlobal(){
     TH2F* h2_avg_et_recemc_window[window_array_size];
     TH2F* h2_avg_et_hcalin_window[window_array_size];
     TH2F* h2_avg_et_hcalout_window[window_array_size];
+    const int AVG_ET_BINS = 20000;
     for ( unsigned int i = 0; i < window_array_size; ++i ) {
-        // h2_avg_et_window[i] = new TH2F(Form("h2_avg_et_window_%dx%d", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second), 
-        //                                 Form("h2_avg_et_window_%dx%d", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second), 
-        //                                 NET_BINS, et_bins, AVG_ET_BINS, avgbins);
-        // h2_avg_et_window[i]->GetXaxis()->SetTitle("#Sigma E_{T}^{Raw} [GeV]");
-        // h2_avg_et_window[i]->GetYaxis()->SetTitle(Form("#LT E_{T}^{%dx%d} #GT [GeV]", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second));
+        
+        float avgbins[AVG_ET_BINS+1];
+        const double MAX_AVG  = std::sqrt(calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second)*1.5;
+        step = MAX_AVG/AVG_ET_BINS;
+        for ( int i = 0; i < AVG_ET_BINS+1; ++i ) {
+            avgbins[i] = i*step;
+        }
         h2_avg_et_full_window[i] = new TH2F(Form("h2_avg_et_full_window_%dx%d", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second), 
                                         Form("h2_avg_et_full_window_%dx%d", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second), 
                                         NET_BINS, et_bins, AVG_ET_BINS, avgbins);
@@ -409,38 +417,51 @@ void ProcessGlobal(){
 
  for ( int i = 0; i < nentries; ++i ) {
         t->GetEntry(i);
-        float sum_e = cemc_e+ihcal_e+ohcal_e;
+        // float sum_e = cemc_e+ihcal_e+ohcal_e;
+        // float sum_e = mbs_s+mbd_n;
+        float sum_e = 1.0*cent;
         for ( unsigned int j = 0; j < window_array_size; ++j ) {
             if ( num_windows_full[window_array_idx[j]] > 0 ) {
-                h2_avg_et_full_window[j]->Fill(sum_e, avg_energy_full[window_array_idx[j]]);
+                h2_avg_et_full_window[j]->Fill(sum_e, std_energy_full[window_array_idx[j]]);
             }
             if ( num_windows_recemc[j] > 0 ) {
-                h2_avg_et_recemc_window[j]->Fill(sum_e, avg_energy_recemc[window_array_idx[j]]);
+                h2_avg_et_recemc_window[j]->Fill(sum_e, std_energy_recemc[window_array_idx[j]]);
             }
             if ( num_windows_hcalin[j] > 0 ) {
-                h2_avg_et_hcalin_window[j]->Fill(sum_e, avg_energy_hcalin[window_array_idx[j]]);
+                h2_avg_et_hcalin_window[j]->Fill(sum_e, std_energy_hcalin[window_array_idx[j]]);
             }
             if ( num_windows_hcalout[j] > 0 ) {
-                h2_avg_et_hcalout_window[j]->Fill(sum_e, avg_energy_hcalout[window_array_idx[j]]);
+                h2_avg_et_hcalout_window[j]->Fill(sum_e, std_energy_hcalout[window_array_idx[j]]);
             }
         }
     }
 
-    TCanvas *c = new TCanvas("c", "c", 400*window_array_size, 400);
+    // set color palette
+    gStyle->SetPalette(kRainBow);
+    TCanvas *c = new TCanvas("c", "c", 400*3, 400*3);
    
     TLatex * tex = new TLatex();
     tex->SetNDC();
     tex->SetTextFont(42);
-    tex->SetTextSize(0.04);
+    // tex->SetTextSize(0.04);
     TLegend * leg = new TLegend(0.18,0.5,0.35,0.7);
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     leg->SetTextSize(0.04);
-        gStyle->SetOptStat(0);
+
+    gStyle->SetOptStat(0);
     gStyle->SetOptFit(0);
     gStyle->SetOptTitle(0);
-    c->Divide(window_array_size, 1);
-    std::vector<float> maxys = {1.2,15,150};
+
+    c->Divide(3,3);
+    // std::vector<float> maxys = {1.2,15,150};
+    double tx=0.25;
+    double ty=0.85;
+
+
+    // std::vector<float> maxys = {1.2,15,150};
+    TH1F* h_1x1 {nullptr};
+    TGraph * g1_nxm[window_array_size];
     for (int i = 0; i < window_array_size; ++i) {
         double tx=0.45;
         double ty=0.25;
@@ -450,61 +471,185 @@ void ProcessGlobal(){
         gPad->SetRightMargin(0.05);
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
-        TF1 * f1 = new TF1("f1", "[0]+[1]*x", 200, 1700);
+        // TF1 * f1 = new TF1("f1", "[0]+[1]*x", 200, 1700);
 
         h2_avg_et_full_window[i]->GetXaxis()->SetNdivisions(505);
-        h2_avg_et_full_window[i]->Fit("f1", "Q", "", 200, 1700);
-        TF1 *fitFunc = h2_avg_et_full_window[i]->GetFunction("f1");
-        fitFunc->SetLineColor(kBlack);
-        fitFunc->SetLineWidth(3);
-        fitFunc->SetLineStyle(2);
+        // h2_avg_et_full_window[i]->Fit("f1", "Q", "", 200, 1700);
+        // TF1 *fitFunc = h2_avg_et_full_window[i]->GetFunction("f1");
+        // fitFunc->SetLineColor(kBlack);
+        // fitFunc->SetLineWidth(3);
+        // fitFunc->SetLineStyle(2);
        
-        h2_avg_et_full_window[i]->GetYaxis()->SetRangeUser(0, maxys[i]);
-
-        h2_avg_et_full_window[i]->Draw("colz");
-       
-        TH1F * hist = (TH1F*)h2_avg_et_recemc_window[i]->ProfileX("projA", 1, -1);
-        TH1F * hist2 = (TH1F*)h2_avg_et_hcalin_window[i]->ProfileX("projB", 1, -1);
-        TH1F * hist3 = (TH1F*)h2_avg_et_hcalout_window[i]->ProfileX("projC", 1, -1);
-        std::vector<TH1F*> histos = {hist, hist2, hist3};
-        std::vector<std::string> tags = { "EMCal", "iHCal", "oHCal"};
-        TGraph * grs[3];
-        for ( unsigned int j = 0; j < histos.size(); ++j ) {
-
-            histos[j]->GetXaxis()->SetRange(histos[j]->GetXaxis()->FindBin(200), histos[j]->GetXaxis()->FindBin(1700));
-            histos[j]->GetXaxis()->SetRangeUser(200, 1700);
-            grs[j] = new TGraph(histos[j]);
-            // rm poins below 200 and above 1700    
-            for ( int k = 0; k < grs[j]->GetN(); ++k ) {
-                if ( grs[j]->GetX()[k] < 200 || grs[j]->GetX()[k] > 1700 ) {
-                    grs[j]->RemovePoint(k);
-                    k--;
-                }
+        h2_avg_et_full_window[i]->GetYaxis()->SetRangeUser(0, h2_avg_et_full_window[i]->GetMaximum()*1.1);
+        TH1F * hist_fill = (TH1F*)h2_avg_et_full_window[i]->ProfileX("full", 1, -1);
+        TGraphErrors * gr_fill = new TGraphErrors(hist_fill);
+        // remove points below 200 and above 1700
+        for ( int k = 0; k < gr_fill->GetN(); ++k ) {
+            if ( gr_fill->GetX()[k] > 1700 ) {
+                gr_fill->RemovePoint(k);
+                k--;
             }
-            grs[j]->SetLineColor(COLORS[j+1]);
-            grs[j]->SetLineWidth(3);
-            grs[j]->SetMarkerColor(COLORS[j+1]);
-            grs[j]->SetMarkerStyle(MARKERS[j]);
-            grs[j]->SetMarkerSize(1);
-            grs[j]->GetXaxis()->SetRangeUser(200, 1700);
-            if ( i == 0 ) {
-                leg->AddEntry(grs[j], tags[j].c_str(), "l");
-            }
-            grs[j]->Draw("same");
         }
+        if ( i == 0 ) {
+            h_1x1 = (TH1F*)hist_fill->Clone("h_1x1");
+        }
+        gr_fill->SetLineColor(kBlack);
+        gr_fill->SetLineWidth(3);
+        gr_fill->SetLineStyle(2);
+        gr_fill->SetMarkerColor(kBlack);
+        gr_fill->SetMarkerStyle(MARKERS[0]);
+        gr_fill->SetMarkerSize(1);
+        gr_fill->GetYaxis()->SetTitle(Form("#LT #sigma^{%dx%d}#GT [GeV]", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second));
+        gr_fill->GetXaxis()->SetTitle("#Sigma E_{T}^{raw} [GeV]");
+        gr_fill->GetXaxis()->SetNdivisions(505);
+        gr_fill->Draw("APL");
+        TGraphErrors * gr_fill2 = new TGraphErrors(h_1x1);
+        float Aa = std::sqrt(calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second);
+        gr_fill2->Scale(Aa);
+        gr_fill2->SetLineColor(kRed);
+        gr_fill2->SetLineWidth(3);
+        gr_fill2->SetLineStyle(2);
+        gr_fill2->Draw("PLsame");
+
+
+        hist_fill->Divide(h_1x1);
+        for ( int k = 0; k < hist_fill->GetNbinsX(); ++k ) {
+            if ( hist_fill->GetBinContent(k+1) == 0 ) {
+                hist_fill->SetBinError(k+1, 0);
+            }
+        }
+        g1_nxm[i] = new TGraph(hist_fill);
+        // remove points below 200 and above 1700
+        for ( int k = 0; k < g1_nxm[i]->GetN(); ++k ) {
+            // if ( g1_nxm[i]->GetX()[k] > 1800 || g1_nxm[i]->GetX()[k] < 200 ) {
+                 if ( g1_nxm[i]->GetX()[k] > 80 ) {
+                g1_nxm[i]->RemovePoint(k);
+                k--;
+            }
+        }
+
+        g1_nxm[i]->SetLineColor(COLORS[i+1]);
+        g1_nxm[i]->SetLineWidth(2);
+        g1_nxm[i]->SetLineStyle(1);
+        g1_nxm[i]->SetMarkerColor(COLORS[i+1]);
+        g1_nxm[i]->SetMarkerStyle(MARKERS[i+1]);
+        g1_nxm[i]->SetMarkerSize(1.5);
+        // g1_nxm[i]->GetYaxis()->SetTitle("#LT #sigma^{%dx%d}#GT / #LT #sigma^{1x1} #GT", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second);
+
+        // hist_fill[i]->Draw("colz");
+       
+        // TH1F * hist = (TH1F*)h2_avg_et_recemc_window[i]->ProfileX("projA", 1, -1, "s");
+        // TH1F * hist2 = (TH1F*)h2_avg_et_hcalin_window[i]->ProfileX("projB", 1, -1, "s");
+        // TH1F * hist3 = (TH1F*)h2_avg_et_hcalout_window[i]->ProfileX("projC", 1, -1, "s");
+        // std::vector<TH1F*> histos = {hist, hist2, hist3};
+        // std::vector<std::string> tags = { "EMCal", "iHCal", "oHCal"};
+        // TGraphErrors * grs[3];
+        // for ( unsigned int j = 0; j < histos.size(); ++j ) {
+
+        //     histos[j]->GetXaxis()->SetRange(histos[j]->GetXaxis()->FindBin(200), histos[j]->GetXaxis()->FindBin(1700));
+        //     histos[j]->GetXaxis()->SetRangeUser(200, 1700);
+        //     grs[j] = new TGraphErrors(histos[j]);
+        //     // rm poins below 200 and above 1700    
+        //     for ( int k = 0; k < grs[j]->GetN(); ++k ) {
+        //         if ( grs[j]->GetX()[k] < 200 || grs[j]->GetX()[k] > 1700 ) {
+        //             grs[j]->RemovePoint(k);
+        //             k--;
+        //         }
+        //     }
+        //     grs[j]->SetLineColor(COLORS[j+1]);
+        //     grs[j]->SetLineWidth(3);
+        //     grs[j]->SetLineStyle(2);
+        //     grs[j]->SetMarkerColor(COLORS[j+1]);
+        //     grs[j]->SetMarkerStyle(MARKERS[j]);
+        //     grs[j]->SetMarkerSize(1);
+        //     grs[j]->GetXaxis()->SetRangeUser(200, 1700);
+        //     if ( i == 0 ) {
+        //         leg->AddEntry(grs[j], tags[j].c_str(), "l");
+        //     }
+        //     grs[j]->Draw("same");
+        // }
         
         std::vector<std::string> sTags = {sPHENIX_Tag, Form("%d #times %d Towers", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second)};
         for ( unsigned int j = 0; j < sTags.size(); ++j ) {
             tex->DrawLatex(tx, ty, sTags[j].c_str());
             ty -= 0.05;
         }
-        tex->DrawLatex(0.18, 0.85, Form("Fit: (%.1e #pm %.1e) + (%.1e#pm %.1e) #times E_{T}^{raw}", f1->GetParameter(0), f1->GetParError(0), f1->GetParameter(1), f1->GetParError(1)));
+        // tex->DrawLatex(0.18, 0.85, Form("Fit: (%.1e #pm %.1e) + (%.1e#pm %.1e) #times E_{T}^{raw}", f1->GetParameter(0), f1->GetParError(0), f1->GetParameter(1), f1->GetParError(1)));
 
         leg->Draw("same");
     }
     c->SaveAs((global_plots+"/avg_et_window.png").c_str());
+    leg->Clear();
 
-//     // TLegend * leg = new TLegend(0.6,0.7,0.9,0.9);
+    TLegend * leg2 = new TLegend(0.2,0.7,0.9,0.9);
+    // 2 col
+    leg2->SetNColumns(2);
+    leg2->SetBorderSize(0);
+    leg2->SetFillStyle(0);
+    TCanvas *c2 = new TCanvas("c2", "c2",1200,800);   
+    gPad->SetLeftMargin(0.15);
+    // gPad->SetLogy();
+    gPad->SetRightMargin(0.05);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetTopMargin(0.05); 
+    for ( int i = 0; i < window_array_size; ++i ) {
+
+        if (i == 0) {
+            continue; // skip 1x1
+        }
+        // g1_nxm[i]->GetYaxis()->SetRangeUser(0, 2);
+        g1_nxm[i]->SetLineColor(COLORS[i]);
+        g1_nxm[i]->SetLineWidth(2);
+        g1_nxm[i]->SetMarkerColor(COLORS[i]);
+        g1_nxm[i]->SetMarkerStyle(MARKERS[i]);
+
+        g1_nxm[i]->GetXaxis()->SetTitle("#Sigma E_{T}^{raw} [GeV]");
+        g1_nxm[i]->GetYaxis()->SetTitle("#LT #sigma^{NxM}#GT / #LT #sigma^{1x1} #GT");
+        g1_nxm[i]->GetXaxis()->SetNdivisions(505);
+        g1_nxm[i]->GetYaxis()->SetRangeUser(0.0, 100);
+        // g1_nxm[i]->Scale(1/std::sqrt(calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second));
+        float A = 1.0*calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second;
+        for ( int k = 0; k < g1_nxm[i]->GetN(); ++k ) {
+            float val = g1_nxm[i]->GetY()[k];
+            // should be approx A^1/2
+            float valn = TMath::Log(val)/TMath::Log(A) - 0.5;
+            g1_nxm[i]->GetY()[k] = valn;
+        }
+        // g1_nxm[i]->Draw("ALP");
+        if ( i == 1 ) {
+            g1_nxm[i]->Draw("AP");
+        } else {
+            g1_nxm[i]->Draw("P same");
+        }
+        // TF1 * f1 = new TF1("f1", "[0]^[1]", 200, 1900);
+        // f1->FixParameter(0, calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second);
+        
+        // make a constant
+        // g1_nxm[i]->Fit("f1", "Q", "", 200, 1900);
+        // TF1 *fitFunc = g1_nxm[i]->GetFunction("f1");
+        // fitFunc->SetLineColor(0);
+        // fitFunc->SetLineWidth(0);
+        // TLine *line = new TLine(200, std::sqrt(calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second), 1900, std::sqrt(calo_window_dims_hcal_geom[i].first*calo_window_dims_hcal_geom[i].second));
+        // line->SetLineColor(kBlack);
+        // line->SetLineWidth(2);
+        // line->SetLineStyle(2);
+        // line->Draw("same");
+
+        // leg2->AddEntry(g1_nxm[i], Form("%d #times %d, k = %.1f #pm %.1e", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second, f1->GetParameter(1), f1->GetParError(1)), "p");
+        leg2->AddEntry(g1_nxm[i], Form("%d #times %d", calo_window_dims_hcal_geom[i].first, calo_window_dims_hcal_geom[i].second), "p");
+    }
+    leg2->Draw("same");
+
+    tx=0.45;
+    ty=0.25;
+    std::vector<std::string> sTags = {sPHENIX_Tag};
+        for ( unsigned int j = 0; j < sTags.size(); ++j ) {
+            tex->DrawLatex(tx, ty, sTags[j].c_str());
+            ty -= 0.05;
+        }
+    c2->SaveAs((global_plots+"/avg_et_window_ratio.png").c_str());
+    
+    // TLegend * leg = new TLegend(0.6,0.7,0.9,0.9);
 //     // leg->SetBorderSize(0);
 //     // leg->SetFillStyle(0);
 

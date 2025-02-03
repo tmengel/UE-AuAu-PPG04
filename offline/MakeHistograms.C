@@ -14,8 +14,8 @@
 
 
 
-void MakeHistos(const std::string & input_file = "/sphenix/user/tmengel/ppg04/condor/hijing_all_rc_nop.root",
-                    const std::string & output_file = "hijing_all_rc_nop_histos.root")
+void MakeHistograms(const std::string & input_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/JAN30/DATA/BASIC/DATA-ProdA_2023-BASIC-023745.root",
+                    const std::string & output_file = "data_all_rc_nop_histos.root")
 {
 
     TH1::SetDefaultSumw2();
@@ -28,7 +28,7 @@ void MakeHistos(const std::string & input_file = "/sphenix/user/tmengel/ppg04/co
     if(!f->IsOpen() || f->IsZombie()){ std::cout << "File " << input_file << " is zombie" << std::endl;  return -1; }
 
     // get tree
-    TTree *t = (TTree*)f->Get("event_info");
+    TTree *t = (TTree*)f->Get("T");
     if(!t){ std::cout << "Tree event_info not found in " << input_file << std::endl; return -1; }
 
     // input variables
@@ -109,27 +109,27 @@ void MakeHistos(const std::string & input_file = "/sphenix/user/tmengel/ppg04/co
 
     TH2D * histo_et_cent = new TH2D("histo_et_cent", "E_{T} vs Centrality; Centrality; E_{T} [GeV]", 100, 0, 100, 2000,0,2000);
 
-    TH1D * h_et_ihcal = (TH1D*)f->Get("et_ihcal");
-    h_et_ihcal->GetXaxis()->SetTitle("E_{T}^{IHCal} (GeV)");
-    h_et_ihcal->GetYaxis()->SetTitle("Counts");
-    TH1D * h_et_re_emcal = (TH1D*)f->Get("et_re_emcal");
-    h_et_re_emcal->GetXaxis()->SetTitle("E_{T}^{Re-Emcal} (GeV)");
-    h_et_re_emcal->GetYaxis()->SetTitle("Counts");
-    TH1D * h_et_ohcal = (TH1D*)f->Get("et_ohcal");
-    h_et_ohcal->GetXaxis()->SetTitle("E_{T}^{OHCal} (GeV)");
-    h_et_ohcal->GetYaxis()->SetTitle("Counts");
-    TH1D * h_et_emcal = (TH1D*)f->Get("et_emcal");
-    h_et_emcal->GetXaxis()->SetTitle("E_{T}^{Emcal} (GeV)");
-    h_et_emcal->GetYaxis()->SetTitle("Counts");
-    TH1D * h_et_ihcal_sub1 = (TH1D*)f->Get("et_ihcal_sub1");
-    h_et_ihcal_sub1->GetXaxis()->SetTitle("E_{T,sub1}^{IHCal} (GeV)");
-    h_et_ihcal_sub1->GetYaxis()->SetTitle("Counts");
-    TH1D * h_et_re_emcal_sub1 = (TH1D*)f->Get("et_re_emcal_sub1");
-    h_et_re_emcal_sub1->GetXaxis()->SetTitle("E_{T,sub1}^{Re-Emcal} (GeV)");
-    h_et_re_emcal_sub1->GetYaxis()->SetTitle("Counts");
-    TH1D * h_et_ohcal_sub1 = (TH1D*)f->Get("et_ohcal_sub1");
-    h_et_ohcal_sub1->GetXaxis()->SetTitle("E_{T,sub1}^{OHCal} (GeV)");
-    h_et_ohcal_sub1->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_ihcal = (TH1D*)f->Get("et_ihcal");
+    // h_et_ihcal->GetXaxis()->SetTitle("E_{T}^{IHCal} (GeV)");
+    // h_et_ihcal->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_re_emcal = (TH1D*)f->Get("et_re_emcal");
+    // h_et_re_emcal->GetXaxis()->SetTitle("E_{T}^{Re-Emcal} (GeV)");
+    // h_et_re_emcal->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_ohcal = (TH1D*)f->Get("et_ohcal");
+    // h_et_ohcal->GetXaxis()->SetTitle("E_{T}^{OHCal} (GeV)");
+    // h_et_ohcal->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_emcal = (TH1D*)f->Get("et_emcal");
+    // h_et_emcal->GetXaxis()->SetTitle("E_{T}^{Emcal} (GeV)");
+    // h_et_emcal->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_ihcal_sub1 = (TH1D*)f->Get("et_ihcal_sub1");
+    // h_et_ihcal_sub1->GetXaxis()->SetTitle("E_{T,sub1}^{IHCal} (GeV)");
+    // h_et_ihcal_sub1->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_re_emcal_sub1 = (TH1D*)f->Get("et_re_emcal_sub1");
+    // h_et_re_emcal_sub1->GetXaxis()->SetTitle("E_{T,sub1}^{Re-Emcal} (GeV)");
+    // h_et_re_emcal_sub1->GetYaxis()->SetTitle("Counts");
+    // TH1D * h_et_ohcal_sub1 = (TH1D*)f->Get("et_ohcal_sub1");
+    // h_et_ohcal_sub1->GetXaxis()->SetTitle("E_{T,sub1}^{OHCal} (GeV)");
+    // h_et_ohcal_sub1->GetYaxis()->SetTitle("Counts");
 
     // get number of entries
     int nentries = t->GetEntries();
@@ -414,13 +414,13 @@ void MakeHistos(const std::string & input_file = "/sphenix/user/tmengel/ppg04/co
     h_et_cent->GetXaxis()->SetTitle("Centrality");
     h_et_cent->GetYaxis()->SetTitle("E_{T} [GeV]");
     h_et_cent->Write();
-    h_et_ihcal->Write();
-    h_et_re_emcal->Write();
-    h_et_ohcal->Write();
-    h_et_emcal->Write();
-    h_et_ihcal_sub1->Write();
-    h_et_re_emcal_sub1->Write();
-    h_et_ohcal_sub1->Write();
+    // h_et_ihcal->Write();
+    // h_et_re_emcal->Write();
+    // h_et_ohcal->Write();
+    // h_et_emcal->Write();
+    // h_et_ihcal_sub1->Write();
+    // h_et_re_emcal_sub1->Write();
+    // h_et_ohcal_sub1->Write();
 
     fout->Close();
 
@@ -430,21 +430,21 @@ void MakeHistos(const std::string & input_file = "/sphenix/user/tmengel/ppg04/co
 
 }
 
-void MakeHistograms(){
+// void MakeHistograms(){
 
-    const std::string & input_file_hijing = "/sphenix/user/tmengel/ppg04/condor/hijing_all_rc_nop.root";
-    const std::string & output_file_hijing = "hijing_all_rc_nop_histos.root";
-    MakeHistos(input_file_hijing, output_file_hijing);
+//     const std::string & input_file_hijing = "/sphenix/user/tmengel/ppg04/condor/hijing_all_rc_nop.root";
+//     const std::string & output_file_hijing = "hijing_all_rc_nop_histos.root";
+//     MakeHistos(input_file_hijing, output_file_hijing);
 
-    const std::string & input_file_data = "/sphenix/user/tmengel/ppg04/condor/data_all_rc_nop.root";
-    const std::string & output_file_data = "data_all_rc_nop_histos.root";
-    MakeHistos(input_file_data, output_file_data);
-
-
-    return ;
+//     const std::string & input_file_data = "/sphenix/user/tmengel/ppg04/condor/data_all_rc_nop.root";
+//     const std::string & output_file_data = "data_all_rc_nop_histos.root";
+//     MakeHistos(input_file_data, output_file_data);
 
 
-}
+//     return ;
+
+// 
+// }
 
 // void MakeHistograms(const std::string & input_file = "/sphenix/user/tmengel/ppg04/condor/hijing_all_rc.root",
 //                     const std::string & output_file = "hijing_all_rc_histos.root")
