@@ -120,7 +120,8 @@ void Fun4All_PPG04(
     // calo manipulation
     PPG04::doCaloManip = true;
     CaloManip::doMinEMCalEnergy = true;
-    CaloManip::MinEMCalEnergy = 0.05;
+    // CaloManip::MinEMCalEnergy = 0.05; // nominal
+    CaloManip::MinEMCalEnergy = 0.150; // for 0.15 GeV
     CaloManip::doTowerRandomizer = ( doRandomEtaPhi == 1 );
     // background subtraction
     PPG04::doIterBackground = true;
