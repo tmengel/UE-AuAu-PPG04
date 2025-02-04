@@ -2,6 +2,7 @@
 
 #include <fun4all/Fun4AllReturnCodes.h>
 #include <fun4all/PHTFileServer.h>
+#include <fun4all/Fun4AllServer.h>
 
 #include <phool/PHCompositeNode.h>
 #include <phool/PHIODataNode.h>
@@ -19,6 +20,7 @@
 #include <globalvertex/GlobalVertex.h>
 #include <globalvertex/GlobalVertexMap.h>
 #include <globalvertex/GlobalVertexMapv1.h>
+// #include <globalvertex/GlobalVertexReco.h>
 
 #include <centrality/CentralityInfo.h>
 #include <centrality/CentralityInfov1.h>
@@ -41,21 +43,66 @@
 #include <underlyingevent/CaloWindowMap.h>
 #include <underlyingevent/CaloWindowMapv1.h>
 
+#include <jetbase/Jet.h>
+#include <jetbase/Jetv2.h>
+#include <jetbase/JetContainer.h>
+#include <jetbase/JetContainerv1.h>
+#include <jetbase/JetInput.h>
+
+#include <fastjet/AreaDefinition.hh>
+#include <fastjet/ClusterSequenceArea.hh>
+#include <fastjet/ClusterSequence.hh>
+#include <fastjet/JetDefinition.hh>
+#include <fastjet/PseudoJet.hh>
+#include <fastjet/Selector.hh>
+
 #include <TTree.h>
 #include <TH1F.h>
 #include <TH2F.h>
 #include <TH3F.h>
+#include <TRandom3.h>
+#include <TTimeStamp.h>
 
 #include <cstdlib>
+#include <iostream>
+#include <cmath>
 
 PPG04AnaWriter::PPG04AnaWriter( const std::string &outputfile )
   : SubsysReco("PPG04AnaWriter")
   , m_output_filename(outputfile)
-{}
+{
+  // silence output from fastjet
+  fastjet::ClusterSequence clusseq;
+  if (Verbosity() > 0) {
+    clusseq.print_banner();
+  }
+  else {
+    std::ostringstream nullstream;
+    clusseq.set_fastjet_banner_stream(&nullstream);
+    clusseq.print_banner();
+    clusseq.set_fastjet_banner_stream(&std::cout);
+  }
+}
 
 
 int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
 {
+  unsigned int seed = 0;
+  auto rc = recoConsts::instance(); // try to get random seed from flags
+  if ( !rc->FlagExist("PPG04RANDOMSEED") ) { // if not set, use time
+    std::cout << PHWHERE << "PPG04RANDOMSEED flag not set, using time." << std::endl;  
+    auto t = new TTimeStamp();
+    seed = static_cast<unsigned int>(t->GetNanoSec());
+    delete t;
+  } else { // if set, use the flag
+    seed = static_cast<unsigned int>(recoConsts::instance()->get_IntFlag("PPG04RANDOMSEED"));
+  }
+
+  m_random = new TRandom3(seed);
+  if ( !m_random ) { // make sure random number generator is created
+    std::cout << PHWHERE << "m_random is not set, doing nothing." << std::endl;
+    return Fun4AllReturnCodes::ABORTRUN;
+  }
 
   // create output file
   PHTFileServer::get().open(m_output_filename, "RECREATE");
@@ -261,9 +308,9 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
     m_tree->Branch("avg_energy_hcalout", &m_avg_energy_hcalout, "avg_energy_hcalout[num_window_dims]/F");
     m_tree->Branch("std_energy_hcalout", &m_std_energy_hcalout, "std_energy_hcalout[num_window_dims]/F");
 
-    int N_window_e_bins = 500;
+    int N_window_e_bins = 700;
     float window_e_min =-5.0;
-    float window_e_max = 250.0;
+    float window_e_max = 350.0;
     int N_window_e_minus_avg_bins = 500;
     float window_e_minus_avg_min = -100.0;
     float window_e_minus_avg_max = 100.0;
@@ -376,6 +423,7 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
 
   }
 
+  // CEMC window
   if ( m_do_calo_cemc_window ) {
     if ( !m_do_calo_window ) {
       m_tree->Branch("num_window_dims", &m_max_window_vector_size, "num_window_dims/i");
@@ -405,6 +453,143 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
       h2_cemc_energy_minus_avg_energy_cent->GetXaxis()->SetTitle("Energy (GeV)");
       h2_cemc_energy_minus_avg_energy_cent->GetYaxis()->SetTitle("Centrality (%)");
       m_h2_cemc_window_energy_minus_avg_energy_cent.push_back(h2_cemc_energy_minus_avg_energy_cent);
+    }
+  }
+
+  // probe jets
+  if ( m_do_probe_jet ) {
+    m_tree->Branch("probe_jet_truth_eta", &m_probe_jet_truth_eta, "probe_jet_truth_eta/F");
+    m_tree->Branch("probe_jet_truth_phi", &m_probe_jet_truth_phi, "probe_jet_truth_phi/F");
+    m_tree->Branch("probe_jet_truth_energy", &m_probe_jet_truth_energy, "probe_jet_truth_energy/F");
+    m_tree->Branch("probe_jet_area", &m_probe_jet_area, "probe_jet_area/F");
+    m_tree->Branch("probe_jet_eta", &m_probe_jet_eta, "probe_jet_eta/F");
+    m_tree->Branch("probe_jet_phi", &m_probe_jet_phi, "probe_jet_phi/F");
+    m_tree->Branch("probe_jet_energy", &m_probe_jet_energy, "probe_jet_energy/F");
+    m_tree->Branch("probe_jet_energy_cemc", &m_probe_jet_energy_cemc, "probe_jet_energy_cemc/F");
+    m_tree->Branch("probe_jet_energy_hcalin", &m_probe_jet_energy_hcalin, "probe_jet_energy_hcalin/F");
+    m_tree->Branch("probe_jet_energy_hcalout", &m_probe_jet_energy_hcalout, "probe_jet_energy_hcalout/F");
+    m_tree->Branch("probe_jet_num_towers", &m_probe_jet_num_towers, "probe_jet_num_towers/I");
+    m_tree->Branch("probe_jet_num_towers_cemc", &m_probe_jet_num_towers_cemc, "probe_jet_num_towers_cemc/I");
+    m_tree->Branch("probe_jet_num_towers_hcalin", &m_probe_jet_num_towers_hcalin, "probe_jet_num_towers_hcalin/I");
+    m_tree->Branch("probe_jet_num_towers_hcalout", &m_probe_jet_num_towers_hcalout, "probe_jet_num_towers_hcalout/I");
+
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Probe jet nodes: ";
+      for ( auto &input : m_probe_jet_inputs ) {
+        input->identify();
+      }
+      std::cout << std::endl;
+    }
+  }
+
+  // probe jet sub1
+  if ( m_do_probe_jet_sub1 ) {
+    m_tree->Branch("probe_jet_sub1_truth_eta", &m_probe_jet_sub1_truth_eta, "probe_jet_sub1_truth_eta/F");
+    m_tree->Branch("probe_jet_sub1_truth_phi", &m_probe_jet_sub1_truth_phi, "probe_jet_sub1_truth_phi/F");
+    m_tree->Branch("probe_jet_sub1_truth_energy", &m_probe_jet_sub1_truth_energy, "probe_jet_sub1_truth_energy/F");
+    m_tree->Branch("probe_jet_sub1_area", &m_probe_jet_sub1_area, "probe_jet_sub1_area/F");
+    m_tree->Branch("probe_jet_sub1_eta", &m_probe_jet_sub1_eta, "probe_jet_sub1_eta/F");
+    m_tree->Branch("probe_jet_sub1_phi", &m_probe_jet_sub1_phi, "probe_jet_sub1_phi/F");
+    m_tree->Branch("probe_jet_sub1_energy", &m_probe_jet_sub1_energy, "probe_jet_sub1_energy/F");
+    m_tree->Branch("probe_jet_sub1_energy_cemc", &m_probe_jet_sub1_energy_cemc, "probe_jet_sub1_energy_cemc/F");
+    m_tree->Branch("probe_jet_sub1_energy_hcalin", &m_probe_jet_sub1_energy_hcalin, "probe_jet_sub1_energy_hcalin/F");
+    m_tree->Branch("probe_jet_sub1_energy_hcalout", &m_probe_jet_sub1_energy_hcalout, "probe_jet_sub1_energy_hcalout/F");
+    m_tree->Branch("probe_jet_sub1_num_towers", &m_probe_jet_sub1_num_towers, "probe_jet_sub1_num_towers/I");
+    m_tree->Branch("probe_jet_sub1_num_towers_cemc", &m_probe_jet_sub1_num_towers_cemc, "probe_jet_sub1_num_towers_cemc/I");
+    m_tree->Branch("probe_jet_sub1_num_towers_hcalin", &m_probe_jet_sub1_num_towers_hcalin, "probe_jet_sub1_num_towers_hcalin/I");
+    m_tree->Branch("probe_jet_sub1_num_towers_hcalout", &m_probe_jet_sub1_num_towers_hcalout, "probe_jet_sub1_num_towers_hcalout/I");
+
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Probe jet sub1 nodes: ";
+      for ( auto &input : m_emb_jet_sub1_inputs ) {
+        input->identify();
+      }
+      std::cout << std::endl;
+    }
+  }
+
+  // embed jet
+  if ( m_do_emb_jet ) {
+    if (m_emb_jet_inputs.size() == 0) {
+      std::cout << "PPG04AnaWriter::Init - ERROR - Embed jet inputs not set" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    m_tree->Branch("emb_jet_eta", &m_emb_jet_eta);
+    m_tree->Branch("emb_jet_phi", &m_emb_jet_phi);
+    m_tree->Branch("emb_jet_energy", &m_emb_jet_energy);
+    m_tree->Branch("emb_jet_area", &m_emb_jet_area);
+    m_tree->Branch("emb_jet_energy_cemc", &m_emb_jet_energy_cemc);
+    m_tree->Branch("emb_jet_energy_hcalin", &m_emb_jet_energy_hcalin);
+    m_tree->Branch("emb_jet_energy_hcalout", &m_emb_jet_energy_hcalout);
+    m_tree->Branch("emb_jet_num_towers", &m_emb_jet_num_towers);
+    m_tree->Branch("emb_jet_num_towers_cemc", &m_emb_jet_num_towers_cemc);
+    m_tree->Branch("emb_jet_num_towers_hcalin", &m_emb_jet_num_towers_hcalin);
+    m_tree->Branch("emb_jet_num_towers_hcalout", &m_emb_jet_num_towers_hcalout);
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Embed jet inputs: ";
+      for ( auto &input : m_emb_jet_inputs ) {
+        input->identify();
+      }
+    }
+  }
+
+  // embed jet sub1
+  if ( m_do_emb_jet_sub1 ) {
+    if (m_emb_jet_sub1_inputs.size() == 0) {
+      std::cout << "PPG04AnaWriter::Init - ERROR - Embed jet sub1 inputs not set" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    m_tree->Branch("emb_jet_sub1_eta", &m_emb_jet_sub1_eta);
+    m_tree->Branch("emb_jet_sub1_phi", &m_emb_jet_sub1_phi);
+    m_tree->Branch("emb_jet_sub1_energy", &m_emb_jet_sub1_energy);
+    m_tree->Branch("emb_jet_sub1_area", &m_emb_jet_sub1_area);
+    m_tree->Branch("emb_jet_sub1_energy_cemc", &m_emb_jet_sub1_energy_cemc);
+    m_tree->Branch("emb_jet_sub1_energy_hcalin", &m_emb_jet_sub1_energy_hcalin);
+    m_tree->Branch("emb_jet_sub1_energy_hcalout", &m_emb_jet_sub1_energy_hcalout);
+    m_tree->Branch("emb_jet_sub1_num_towers", &m_emb_jet_sub1_num_towers);
+    m_tree->Branch("emb_jet_sub1_num_towers_cemc", &m_emb_jet_sub1_num_towers_cemc);
+    m_tree->Branch("emb_jet_sub1_num_towers_hcalin", &m_emb_jet_sub1_num_towers_hcalin);
+    m_tree->Branch("emb_jet_sub1_num_towers_hcalout", &m_emb_jet_sub1_num_towers_hcalout);
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Embed jet sub1 inputs: ";
+      for ( auto &input : m_emb_jet_sub1_inputs ) {
+        input->identify();
+      }
+
+    }
+  }
+
+  // sim jet
+  if ( m_do_sim_jet ) {
+    if ( m_emb_jet_inputs.empty() ) {
+      std::cout << "PPG04AnaWriter::Init - ERROR - Must have embed jet inputs to get sim jet info" << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    m_tree->Branch("sim_jet_eta", &m_sim_jet_eta);
+    m_tree->Branch("sim_jet_phi", &m_sim_jet_phi);
+    m_tree->Branch("sim_jet_energy", &m_sim_jet_energy);
+    m_tree->Branch("sim_jet_area", &m_sim_jet_area);
+    m_tree->Branch("sim_jet_energy_cemc", &m_sim_jet_energy_cemc);
+    m_tree->Branch("sim_jet_energy_hcalin", &m_sim_jet_energy_hcalin);
+    m_tree->Branch("sim_jet_energy_hcalout", &m_sim_jet_energy_hcalout);
+    m_tree->Branch("sim_jet_num_towers", &m_sim_jet_num_towers);
+    m_tree->Branch("sim_jet_num_towers_cemc", &m_sim_jet_num_towers_cemc);
+    m_tree->Branch("sim_jet_num_towers_hcalin", &m_sim_jet_num_towers_hcalin);
+    m_tree->Branch("sim_jet_num_towers_hcalout", &m_sim_jet_num_towers_hcalout);
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Sim jet top: " << m_sim_jet_node_top << std::endl;
+    }
+
+  }
+
+  // truth jet
+  if ( m_do_truth_jet ) {
+    m_tree->Branch("truth_jet_eta", &m_truth_jet_eta);
+    m_tree->Branch("truth_jet_phi", &m_truth_jet_phi);
+    m_tree->Branch("truth_jet_energy", &m_truth_jet_energy);
+    m_tree->Branch("truth_jet_ncomp", &m_truth_jet_ncomp);
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Truth jet node: " << m_truth_jet_node << "(" << m_truth_jet_node_top << ")" << std::endl;
     }
   }
 
@@ -473,6 +658,43 @@ int PPG04AnaWriter::process_event( PHCompositeNode *topNode )
 
   if ( m_do_calo_cemc_window ) {
     GetCaloCemcWindowInfo(topNode);
+  }
+
+  if ( m_do_probe_jet ) {
+    GetEmbJetInfo(topNode, JetMODE::PROBE);
+  }
+
+  if ( m_do_probe_jet_sub1 ) {
+    GetEmbJetInfo(topNode, JetMODE::PROBE_SUB1);
+  }
+
+  if ( m_do_emb_jet ) {
+    GetEmbJetInfo(topNode, JetMODE::EMB);
+  }
+
+  if ( m_do_emb_jet_sub1 ) {
+    GetEmbJetInfo(topNode, JetMODE::EMB_SUB1);
+  }
+
+  if ( m_do_sim_jet ) {
+    auto se = Fun4AllServer::instance();
+    auto simTop = se->topNode(m_sim_jet_node_top);  
+    if ( !simTop ) {
+      std::cout << PHWHERE << "Sim jet top node " << m_sim_jet_node_top << " not found." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    // m_gvtx->process_event(simTop);
+    GetEmbJetInfo(simTop, JetMODE::SIM);
+  }
+
+  if ( m_do_truth_jet ) {
+    auto se = Fun4AllServer::instance();
+    auto truthNode = se->topNode(m_truth_jet_node_top);
+    if ( !truthNode ) {
+      std::cout << PHWHERE << "Truth jet top node " << m_truth_jet_node_top << " not found." << std::endl;
+      return Fun4AllReturnCodes::ABORTRUN;
+    }
+    GetEmbJetInfo(truthNode, JetMODE::TRUTH);
   }
 
   m_tree->Fill();
@@ -609,6 +831,83 @@ int PPG04AnaWriter::ResetEvent( PHCompositeNode * /*topNode*/ )
   m_avg_energy_cemc.fill(0);
   m_std_energy_cemc.fill(0);
 
+  // probe jets
+  m_probe_jet_truth_eta = 0;
+  m_probe_jet_truth_phi = 0;
+  m_probe_jet_truth_energy = 0;
+  m_probe_jet_area = 0;
+  m_probe_jet_eta = 0;
+  m_probe_jet_phi = 0;
+  m_probe_jet_energy = 0;
+  m_probe_jet_energy_cemc = 0;
+  m_probe_jet_energy_hcalin = 0;
+  m_probe_jet_energy_hcalout = 0;
+  m_probe_jet_num_towers = 0;
+  m_probe_jet_num_towers_cemc = 0;
+  m_probe_jet_num_towers_hcalin = 0;
+  m_probe_jet_num_towers_hcalout = 0;
+
+  // probe jets sub1
+  m_probe_jet_sub1_truth_eta = 0;
+  m_probe_jet_sub1_truth_phi = 0;
+  m_probe_jet_sub1_truth_energy = 0;
+  m_probe_jet_sub1_area = 0;
+  m_probe_jet_sub1_eta = 0;
+  m_probe_jet_sub1_phi = 0;
+  m_probe_jet_sub1_energy = 0;
+  m_probe_jet_sub1_energy_cemc = 0;
+  m_probe_jet_sub1_energy_hcalin = 0;
+  m_probe_jet_sub1_energy_hcalout = 0;
+  m_probe_jet_sub1_num_towers = 0;
+  m_probe_jet_sub1_num_towers_cemc = 0;
+  m_probe_jet_sub1_num_towers_hcalin = 0;
+  m_probe_jet_sub1_num_towers_hcalout = 0;
+
+  // embed jet
+  m_emb_jet_eta.clear();
+  m_emb_jet_phi.clear();
+  m_emb_jet_energy.clear();
+  m_emb_jet_area.clear();
+  m_emb_jet_energy_cemc.clear();
+  m_emb_jet_energy_hcalin.clear();
+  m_emb_jet_energy_hcalout.clear();
+  m_emb_jet_num_towers.clear();
+  m_emb_jet_num_towers_cemc.clear();
+  m_emb_jet_num_towers_hcalin.clear();
+  m_emb_jet_num_towers_hcalout.clear();
+
+  // embed jet sub1
+  m_emb_jet_sub1_eta.clear();
+  m_emb_jet_sub1_phi.clear();
+  m_emb_jet_sub1_energy.clear();
+  m_emb_jet_sub1_area.clear();
+  m_emb_jet_sub1_energy_cemc.clear();
+  m_emb_jet_sub1_energy_hcalin.clear();
+  m_emb_jet_sub1_energy_hcalout.clear();
+  m_emb_jet_sub1_num_towers.clear();
+  m_emb_jet_sub1_num_towers_cemc.clear();
+  m_emb_jet_sub1_num_towers_hcalin.clear();
+  m_emb_jet_sub1_num_towers_hcalout.clear();
+
+  // sim jets
+  m_sim_jet_eta.clear();
+  m_sim_jet_phi.clear();
+  m_sim_jet_energy.clear();
+  m_sim_jet_area.clear();
+  m_sim_jet_energy_cemc.clear();
+  m_sim_jet_energy_hcalin.clear();
+  m_sim_jet_energy_hcalout.clear();
+  m_sim_jet_num_towers.clear();
+  m_sim_jet_num_towers_cemc.clear();
+  m_sim_jet_num_towers_hcalin.clear();
+  m_sim_jet_num_towers_hcalout.clear();
+
+  // truth jets
+  m_truth_jet_eta.clear();
+  m_truth_jet_phi.clear();
+  m_truth_jet_energy.clear();
+  m_truth_jet_ncomp.clear();
+
 
   return Fun4AllReturnCodes::EVENT_OK;
 
@@ -697,7 +996,6 @@ int PPG04AnaWriter::GetZvtx( PHCompositeNode *topNode )
   if ( Verbosity() > 1 ) {
     std::cout << "PPG04AnaWriter::GetZvtx - zvtx = " << m_zvtx << std::endl;
   }
-
   return Fun4AllReturnCodes::EVENT_OK;
 }
 
@@ -841,7 +1139,7 @@ int PPG04AnaWriter::GetRandomConeInfo( PHCompositeNode *topNode )
     if ( Verbosity() > 2 ) {
       std::cout << "PPG04AnaWriter::GetRandomConeInfo - Random cone " << m_randomcone_nodes[i] << " R, eta, phi, energy = " << m_random_cone_R[i] << ", " << m_random_cone_eta[i] << ", " << m_random_cone_phi[i] << ", " << m_random_cone_energy[i] << std::endl;
     }
-  }
+  } // random cone nodes
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
@@ -1037,7 +1335,7 @@ int PPG04AnaWriter::GetCaloCemcWindowInfo( PHCompositeNode *topNode )
     }
     m_avg_energy_cemc[i] /= m_num_windows_cemc[i];
     m_std_energy_cemc[i] = sqrt((sum_energy_cemc2/m_num_windows_cemc[i]) - (m_avg_energy_cemc[i]*m_avg_energy_cemc[i]));
-    // reloop to fill minus avg energy
+    // reloop to fikll minus avg energy
     for ( unsigned int j = 0; j < cemc_vec.size(); ++j ) {
       if ( cemc_vec.at(j) != CaloWindowMap::kMASK_ENERGY ) {
         m_h2_cemc_window_energy_minus_avg_energy_cent[i]->Fill(cemc_vec.at(j) - m_avg_energy_cemc[i], m_centrality);
@@ -1047,3 +1345,307 @@ int PPG04AnaWriter::GetCaloCemcWindowInfo( PHCompositeNode *topNode )
 
   return Fun4AllReturnCodes::EVENT_OK;
 }
+
+int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
+{
+  std::vector<Jet*> particles{};
+  if ( mode == JetMODE::EMB || mode == JetMODE::SIM ) {
+    if ( m_emb_jet_inputs.size() == 0 ) {
+      std::cout << PHWHERE << " No input nodes for embedding jets" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    for (auto & input : m_emb_jet_inputs) {
+      auto parts = input->get_input(topNode);
+      for (auto & part : parts) {
+        particles.push_back(part);
+        particles.back()->set_id(particles.size() - 1);  // unique ids ensured
+      }
+    }
+  } else if ( mode == JetMODE::EMB_SUB1 ) {
+    if ( m_emb_jet_sub1_inputs.size() == 0 ) {
+      std::cout << PHWHERE << " No input nodes for embedding jets" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    for (auto & input : m_emb_jet_sub1_inputs) {
+      auto parts = input->get_input(topNode);
+      for (auto & part : parts) {
+        particles.push_back(part);
+        particles.back()->set_id(particles.size() - 1);  // unique ids ensured
+      }
+    }
+  } else if ( mode == JetMODE::TRUTH ){
+
+    auto truthjets = findNode::getClass<JetContainer>(topNode, m_truth_jet_node);
+    if ( !truthjets ) {
+      std::cout << PHWHERE << " Input node JetTruthContainer Node missing, doing nothing." << std::endl;
+      exit(-1); // fatal error
+    }
+    for ( auto jet : *truthjets ) {
+      if ( std::abs(jet->get_eta()) > 0.7 ) { continue; }
+      if ( jet->get_pt() < 5.0 ) { continue; }
+      m_truth_jet_eta.push_back(jet->get_eta());
+      m_truth_jet_phi.push_back(jet->get_phi());
+      m_truth_jet_energy.push_back(jet->get_pt());
+      m_truth_jet_ncomp.push_back(jet->size_comp());
+    }
+
+    particles.clear();
+
+    if ( Verbosity() > 2 ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Truth jets " << m_truth_jet_node << " found " << m_truth_jet_eta.size() << " jets" << std::endl;
+    }
+    
+    return Fun4AllReturnCodes::EVENT_OK;
+
+  } else if ( mode == JetMODE::PROBE ){
+    if ( m_probe_jet_inputs.size() == 0 ) {
+      std::cout << PHWHERE << " No input nodes for probe jets" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    for (auto & input : m_probe_jet_inputs) {
+      auto parts = input->get_input(topNode);
+      for (auto & part : parts) {
+        particles.push_back(part);
+        particles.back()->set_id(particles.size() - 1);  // unique ids ensured
+      }
+    }
+
+    auto PROBEJET = new Jetv2();
+    float pt = 30;
+    float eta = m_random->Uniform(-0.7, 0.7);
+    float phi = m_random->Uniform(-M_PI, M_PI);
+    float px = pt*cos(phi);
+    float py = pt*sin(phi);
+    float pz = pt*sinh(eta);
+    float e = pt*cosh(eta);
+    PROBEJET->set_px(px);
+    PROBEJET->set_py(py);
+    PROBEJET->set_pz(pz);
+    PROBEJET->set_e(e);
+    PROBEJET->set_id(1);
+    PROBEJET->insert_comp(Jet::SRC::JET_PROBE, 1, true);
+    particles.push_back(PROBEJET);
+
+  } else if ( mode == JetMODE::PROBE_SUB1 ){
+    if ( m_probe_jet_sub1_inputs.size() == 0 ) {
+      std::cout << PHWHERE << " No input nodes for probe jets sub1" << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    }
+    for ( auto & input : m_probe_jet_sub1_inputs ) {
+      auto parts = input->get_input(topNode);
+      for (auto & part : parts) {
+        particles.push_back(part);
+        particles.back()->set_id(particles.size() - 1);  // unique ids ensured
+      }
+    }
+    auto PROBEJET = new Jetv2();
+    float pt = 30;
+    float eta = m_random->Uniform(-0.7, 0.7);
+    float phi = m_random->Uniform(-M_PI, M_PI);
+    float px = pt*cos(phi);
+    float py = pt*sin(phi);
+    float pz = pt*sinh(eta);
+    float e = pt*cosh(eta);
+    PROBEJET->set_px(px);
+    PROBEJET->set_py(py);
+    PROBEJET->set_pz(pz);
+    PROBEJET->set_e(e);
+    PROBEJET->set_id(1);
+    PROBEJET->insert_comp(Jet::SRC::JET_PROBE, 1, true);
+    particles.push_back(PROBEJET);
+  } else {
+    std::cout << PHWHERE << " Unknown mode " << mode << std::endl;
+    return Fun4AllReturnCodes::ABORTEVENT;
+  }
+
+  std::vector<fastjet::PseudoJet> calo_pseudojets{};
+  for (unsigned int ipart = 0; ipart < particles.size(); ++ipart) {
+    float this_e = particles[ipart]->get_e();
+    if (this_e == 0.) {
+      continue;
+    }  // skip zero energy particles
+    float this_px = particles[ipart]->get_px();
+    float this_py = particles[ipart]->get_py();
+    float this_pz = particles[ipart]->get_pz();
+
+    if (this_e < 0) {  // make energy = +1 MeV for purposes of clustering
+      float e_ratio = 0.001 / this_e;
+      this_e = this_e * e_ratio;
+      this_px = this_px * e_ratio;
+      this_py = this_py * e_ratio;
+      this_pz = this_pz * e_ratio;
+    }
+
+    fastjet::PseudoJet pseudojet(this_px, this_py, this_pz, this_e);
+    pseudojet.set_user_index(ipart);
+    calo_pseudojets.push_back(pseudojet);
+  }  // end of loop over particles
+
+  fastjet::JetDefinition * jet_def = new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.4, fastjet::E_scheme, fastjet::Best);
+  fastjet::AreaDefinition area_def(fastjet::active_area_explicit_ghosts, fastjet::GhostedAreaSpec(1.1, 1, 0.01));
+  fastjet::Selector jet_selector = (!fastjet::SelectorIsPureGhost()) * (fastjet::SelectorAbsEtaMax(0.7) && fastjet::SelectorPtMin(5.0));
+  auto m_cluseq = new fastjet::ClusterSequenceArea( calo_pseudojets, * jet_def, area_def );
+  auto fastjets = jet_selector(m_cluseq->inclusive_jets(5.0));
+  for ( auto & fastjet : fastjets )  {
+
+    bool has_a_probe = false;
+    float probe_eta = 0, probe_phi = 0, probe_energy = 0;
+    // get comps
+    float tpx = 0, tpy = 0;
+    float pt_cemc = 0, pt_hcalin = 0, pt_hcalout = 0;
+    int n_towers_cemc = 0, n_towers_hcalin = 0, n_towers_hcalout = 0;
+    auto fastjet_comps = fastjet.constituents();
+    for ( auto & fastjet_comp : fastjet_comps ) {
+
+      if ( fastjet_comp.is_pure_ghost() ){ continue; }
+
+      auto p = particles[fastjet_comp.user_index()];
+      for (auto & comp : p->get_comp_vec() ) {
+        if ( comp.first == Jet::SRC::CEMC_TOWERINFO 
+            || comp.first == Jet::SRC::CEMC_TOWERINFO_SUB1 
+            || comp.first == Jet::SRC::CEMC_TOWERINFO_RETOWER ) {
+            n_towers_cemc++;
+            pt_cemc += p->get_e()/cosh(p->get_eta());
+            tpx += p->get_px();
+            tpy += p->get_py();
+        } else if ( comp.first == Jet::SRC::HCALIN_TOWERINFO
+            || comp.first == Jet::SRC::HCALIN_TOWERINFO_SUB1 ) {
+            n_towers_hcalin++;
+            pt_hcalin += p->get_e()/cosh(p->get_eta());
+            tpx += p->get_px();
+            tpy += p->get_py();
+        } else if ( comp.first == Jet::SRC::HCALOUT_TOWERINFO
+            || comp.first == Jet::SRC::HCALOUT_TOWERINFO_SUB1 ) {
+            n_towers_hcalout++;
+            pt_hcalout += p->get_e()/cosh(p->get_eta());
+            tpx += p->get_px();
+            tpy += p->get_py();
+        } else if ( comp.first == Jet::SRC::JET_PROBE ){
+          has_a_probe = true;
+          tpx += p->get_px();
+          tpy += p->get_py();
+          probe_eta = p->get_eta();
+          probe_phi = p->get_phi();
+          probe_energy = p->get_pt();
+        } else {
+          std::cout << PHWHERE << " Unknown jet component " << comp.first << std::endl;
+          continue;
+        } // end if comp
+      }
+
+    } // end loop over comps
+    float tpt = sqrt(tpx*tpx + tpy*tpy);
+    float area = fastjet.area();
+    float phi = fastjet.phi_std();
+    float eta = fastjet.eta();
+
+    if (tpt < 5 ) { continue; }
+    if ( std::abs(eta) > 0.7 ) { continue; }
+
+    if ( mode == JetMODE::EMB ){
+      m_emb_jet_eta.push_back(eta);
+      m_emb_jet_phi.push_back(phi);
+      m_emb_jet_energy.push_back(tpt);
+      m_emb_jet_area.push_back(area);
+      m_emb_jet_energy_cemc.push_back(pt_cemc);
+      m_emb_jet_energy_hcalin.push_back(pt_hcalin);
+      m_emb_jet_energy_hcalout.push_back(pt_hcalout);
+      m_emb_jet_num_towers.push_back(n_towers_cemc + n_towers_hcalin + n_towers_hcalout);
+      m_emb_jet_num_towers_cemc.push_back(n_towers_cemc);
+      m_emb_jet_num_towers_hcalin.push_back(n_towers_hcalin);
+      m_emb_jet_num_towers_hcalout.push_back(n_towers_hcalout);
+    } else if ( mode == JetMODE::SIM ) {
+      m_sim_jet_eta.push_back(eta);
+      m_sim_jet_phi.push_back(phi);
+      m_sim_jet_energy.push_back(tpt);
+      m_sim_jet_area.push_back(area);
+      m_sim_jet_energy_cemc.push_back(pt_cemc);
+      m_sim_jet_energy_hcalin.push_back(pt_hcalin);
+      m_sim_jet_energy_hcalout.push_back(pt_hcalout);
+      m_sim_jet_num_towers.push_back(n_towers_cemc + n_towers_hcalin + n_towers_hcalout);
+      m_sim_jet_num_towers_cemc.push_back(n_towers_cemc);
+      m_sim_jet_num_towers_hcalin.push_back(n_towers_hcalin);
+      m_sim_jet_num_towers_hcalout.push_back(n_towers_hcalout);
+    } else if ( mode == JetMODE::EMB_SUB1 ) {    
+      m_emb_jet_sub1_eta.push_back(eta);
+      m_emb_jet_sub1_phi.push_back(phi);
+      m_emb_jet_sub1_energy.push_back(tpt);
+      m_emb_jet_sub1_area.push_back(area);
+      m_emb_jet_sub1_energy_cemc.push_back(pt_cemc);
+      m_emb_jet_sub1_energy_hcalin.push_back(pt_hcalin);
+      m_emb_jet_sub1_energy_hcalout.push_back(pt_hcalout);
+      m_emb_jet_sub1_num_towers.push_back(n_towers_cemc + n_towers_hcalin + n_towers_hcalout);
+      m_emb_jet_sub1_num_towers_cemc.push_back(n_towers_cemc);
+      m_emb_jet_sub1_num_towers_hcalin.push_back(n_towers_hcalin);
+      m_emb_jet_sub1_num_towers_hcalout.push_back(n_towers_hcalout);
+    } else if ( mode == JetMODE::PROBE ) {
+      if (! has_a_probe) {continue;}
+      m_probe_jet_truth_eta = probe_eta;
+      m_probe_jet_truth_phi = probe_phi;
+      m_probe_jet_truth_energy = probe_energy;
+      m_probe_jet_eta = eta;
+      m_probe_jet_phi = phi;
+      m_probe_jet_energy = tpt;
+      m_probe_jet_area = area;
+      m_probe_jet_energy_cemc = pt_cemc;
+      m_probe_jet_energy_hcalin = pt_hcalin;
+      m_probe_jet_energy_hcalout = pt_hcalout;
+      m_probe_jet_num_towers = n_towers_cemc + n_towers_hcalin + n_towers_hcalout;
+      m_probe_jet_num_towers++;
+      m_probe_jet_num_towers_cemc = n_towers_cemc;
+      m_probe_jet_num_towers_hcalin = n_towers_hcalin;
+      m_probe_jet_num_towers_hcalout = n_towers_hcalout;
+
+      break; // only one probe jet
+
+    } else if ( mode == JetMODE::PROBE_SUB1) {
+      if (! has_a_probe) {continue;}
+      m_probe_jet_sub1_truth_eta = probe_eta;
+      m_probe_jet_sub1_truth_phi = probe_phi;
+      m_probe_jet_sub1_truth_energy = probe_energy;
+      m_probe_jet_sub1_eta = eta;
+      m_probe_jet_sub1_phi = phi;
+      m_probe_jet_sub1_energy = tpt;
+      m_probe_jet_sub1_area = area;
+      m_probe_jet_sub1_energy_cemc = pt_cemc;
+      m_probe_jet_sub1_energy_hcalin = pt_hcalin;
+      m_probe_jet_sub1_energy_hcalout = pt_hcalout;
+      m_probe_jet_sub1_num_towers = n_towers_cemc + n_towers_hcalin + n_towers_hcalout;
+      m_probe_jet_sub1_num_towers++;
+      m_probe_jet_sub1_num_towers_cemc = n_towers_cemc;
+      m_probe_jet_sub1_num_towers_hcalin = n_towers_hcalin;
+      m_probe_jet_sub1_num_towers_hcalout = n_towers_hcalout;
+
+      break; // only one probe jet_sub1
+    } else {
+      std::cout << PHWHERE << " Unknown mode " << mode << std::endl;
+      return Fun4AllReturnCodes::ABORTEVENT;
+    } 
+  } // end loop over fastjets
+
+  // clean up
+  delete jet_def;
+  // clean up input vectors
+  for (auto &part : particles) { delete part; }
+  particles.clear();
+  calo_pseudojets.clear();
+  fastjets.clear();
+
+  if ( Verbosity() > 2 ) {
+    if ( mode == JetMODE::EMB ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Emb jets " << m_emb_jet_inputs.size() << " found " << m_emb_jet_eta.size() << " jets" << std::endl;
+    } else if ( mode == JetMODE::SIM ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Sim jets " << m_emb_jet_inputs.size() << " found " << m_sim_jet_eta.size() << " jets" << std::endl;
+    } else if ( mode == JetMODE::EMB_SUB1 ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Emb sub1 jets " << m_emb_jet_sub1_inputs.size() << " found " << m_emb_jet_sub1_eta.size() << " jets" << std::endl;
+    } else if ( mode == JetMODE::PROBE ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Probe found: (eta,phi,e) " << m_probe_jet_truth_eta << ", " << m_probe_jet_truth_phi << ", " << m_probe_jet_truth_energy << std::endl;
+    } else if ( mode == JetMODE::PROBE_SUB1 ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Probe sub1 found: (eta,phi,e) " << m_probe_jet_sub1_truth_eta << ", " << m_probe_jet_sub1_truth_phi << ", " << m_probe_jet_sub1_truth_energy << std::endl;
+    }
+  }
+
+  return Fun4AllReturnCodes::EVENT_OK;   
+
+}
+

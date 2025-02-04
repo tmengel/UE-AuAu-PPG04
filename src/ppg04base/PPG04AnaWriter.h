@@ -3,15 +3,16 @@
 
 #include <fun4all/SubsysReco.h>
 
-#include <centrality/CentralityInfo.h>
-
 #include <string>
 #include <utility>  
 #include <vector>
 #include <array>
-#include <cmath>
 
+
+class JetInput;
+// class GlobalVertexReco;
 class PHCompositeNode;
+class TRandom3;
 class TTree;
 class TH1;
 class TH2;
@@ -64,7 +65,7 @@ class PPG04AnaWriter : public SubsysReco
     m_randomcone_nodes.push_back(name); 
   }
 
-  void do_calo_window_ana( const std::string &recemc, const std::string &hcalin, const std::string &hcalout ) {
+  void do_calo_window_ana( const std::string & recemc, const std::string & hcalin, const std::string & hcalout ) {
     m_do_calo_window = true;
     m_window_recemc_node = recemc;
     m_window_hcalin_node = hcalin;
@@ -76,13 +77,44 @@ class PPG04AnaWriter : public SubsysReco
     m_window_cemc_node = name;
   }
 
+  void do_probe_jet( std::vector< JetInput * > & jet_inputs ) {
+    m_do_probe_jet = true;
+    m_probe_jet_inputs = jet_inputs;    
+  }
+
+  void do_probe_jet_sub1(std::vector< JetInput * > & jet_inputs ) {
+    m_do_probe_jet_sub1 = true;
+    m_probe_jet_sub1_inputs = jet_inputs;
+  }
+
+  void do_emb_jet( std::vector< JetInput * > & jet_inputs) {
+    m_do_emb_jet = true;
+    m_emb_jet_inputs = jet_inputs;
+  }
+
+  void do_emb_jet_sub1( std::vector< JetInput * > & jet_inputs) {
+    m_do_emb_jet_sub1 = true;
+    m_emb_jet_sub1_inputs = jet_inputs;
+  }
+
+  void do_sim_jet(const std::string & sim_node_top ) {
+    m_do_sim_jet = true;
+    m_sim_jet_node_top = sim_node_top;
+  }
+
+  void do_truth_jet( const std::string & truth_node , const std::string & truth_node_top ) {
+    m_do_truth_jet = true;
+    m_truth_jet_node = truth_node;
+    m_truth_jet_node_top = truth_node_top;
+  } 
+  
 
  private:
     
   std::string m_output_filename { "output.root" };
 
   TTree * m_tree {nullptr};
-
+  TRandom3 * m_random {nullptr};
   // general
   int m_event_id {-1};
   unsigned int m_random_seed { 0 };
@@ -219,6 +251,98 @@ class PPG04AnaWriter : public SubsysReco
   std::array < float, 11 > m_avg_energy_cemc{};
   std::array < float, 11 > m_std_energy_cemc{};
 
+
+  // probe jet
+  bool m_do_probe_jet { false };
+  std::vector< JetInput * > m_probe_jet_inputs {};
+  float m_probe_jet_truth_eta { 0 };
+  float m_probe_jet_truth_phi { 0 };
+  float m_probe_jet_truth_energy { 0 };
+  float m_probe_jet_area { 0 };
+  float m_probe_jet_eta { 0 };
+  float m_probe_jet_phi { 0 };
+  float m_probe_jet_energy { 0 };
+  float m_probe_jet_energy_cemc { 0 };
+  float m_probe_jet_energy_hcalin { 0 };
+  float m_probe_jet_energy_hcalout { 0 };
+  int  m_probe_jet_num_towers { 0 };
+  int m_probe_jet_num_towers_cemc { 0 };
+  int m_probe_jet_num_towers_hcalin { 0 };
+  int m_probe_jet_num_towers_hcalout { 0 };
+
+  // probe jet sub1
+  bool m_do_probe_jet_sub1 { false };
+  std::vector< JetInput * > m_probe_jet_sub1_inputs {};
+  float m_probe_jet_sub1_truth_eta { 0 };
+  float m_probe_jet_sub1_truth_phi { 0 };
+  float m_probe_jet_sub1_truth_energy { 0 };
+  float m_probe_jet_sub1_area { 0 };
+  float m_probe_jet_sub1_eta { 0 };
+  float m_probe_jet_sub1_phi { 0 };
+  float m_probe_jet_sub1_energy { 0 };
+  float m_probe_jet_sub1_energy_cemc { 0 };
+  float m_probe_jet_sub1_energy_hcalin { 0 };
+  float m_probe_jet_sub1_energy_hcalout { 0 };
+  int  m_probe_jet_sub1_num_towers { 0 };
+  int m_probe_jet_sub1_num_towers_cemc { 0 };
+  int m_probe_jet_sub1_num_towers_hcalin { 0 };
+  int m_probe_jet_sub1_num_towers_hcalout { 0 };
+
+
+  // embedded jet
+  bool m_do_emb_jet { false };
+  std::vector< JetInput * > m_emb_jet_inputs {};
+  std::vector< float > m_emb_jet_eta {};
+  std::vector< float > m_emb_jet_phi {};
+  std::vector< float > m_emb_jet_energy {};
+  std::vector< float > m_emb_jet_area {};
+  std::vector< float > m_emb_jet_energy_cemc {};
+  std::vector< float > m_emb_jet_energy_hcalin {};
+  std::vector< float > m_emb_jet_energy_hcalout {};
+  std::vector< int > m_emb_jet_num_towers {};
+  std::vector< int > m_emb_jet_num_towers_cemc {};
+  std::vector< int > m_emb_jet_num_towers_hcalin {};
+  std::vector< int > m_emb_jet_num_towers_hcalout {};
+
+  bool m_do_emb_jet_sub1 { false };
+  std::vector< JetInput * > m_emb_jet_sub1_inputs {};
+  std::vector< float > m_emb_jet_sub1_eta {};
+  std::vector< float > m_emb_jet_sub1_phi {};
+  std::vector< float > m_emb_jet_sub1_energy {};
+  std::vector< float > m_emb_jet_sub1_area {};
+  std::vector< float > m_emb_jet_sub1_energy_cemc {};
+  std::vector< float > m_emb_jet_sub1_energy_hcalin {};
+  std::vector< float > m_emb_jet_sub1_energy_hcalout {};
+  std::vector< int > m_emb_jet_sub1_num_towers {};
+  std::vector< int > m_emb_jet_sub1_num_towers_cemc {};
+  std::vector< int > m_emb_jet_sub1_num_towers_hcalin {};
+  std::vector< int > m_emb_jet_sub1_num_towers_hcalout {};
+
+  // sim jets
+  bool m_do_sim_jet { false };
+  // GlobalVertexReco * m_gvtx { nullptr };
+  std::string m_sim_jet_node_top { "" };
+  std::vector< float > m_sim_jet_eta {};
+  std::vector< float > m_sim_jet_phi {};
+  std::vector< float > m_sim_jet_energy {};
+  std::vector< float > m_sim_jet_area {};
+  std::vector< float > m_sim_jet_energy_cemc {};
+  std::vector< float > m_sim_jet_energy_hcalin {};
+  std::vector< float > m_sim_jet_energy_hcalout {};
+  std::vector< int > m_sim_jet_num_towers {};
+  std::vector< int > m_sim_jet_num_towers_cemc {};
+  std::vector< int > m_sim_jet_num_towers_hcalin {};
+  std::vector< int > m_sim_jet_num_towers_hcalout {};
+
+  // truth jets
+  bool m_do_truth_jet { false };
+  std::string m_truth_jet_node { "" };
+  std::string m_truth_jet_node_top { "" };
+  std::vector< float > m_truth_jet_eta {};
+  std::vector< float > m_truth_jet_phi {};
+  std::vector< float > m_truth_jet_energy {};
+  std::vector< int > m_truth_jet_ncomp {};
+
   int GetMbdInfo( PHCompositeNode *topNode );
   int GetCentInfo( PHCompositeNode *topNode );
   int GetZvtx( PHCompositeNode *topNode );
@@ -228,6 +352,15 @@ class PPG04AnaWriter : public SubsysReco
   int GetRandomConeInfo( PHCompositeNode *topNode );
   int GetCaloWindowInfo( PHCompositeNode *topNode );
   int GetCaloCemcWindowInfo( PHCompositeNode *topNode );
+  enum JetMODE {
+    EMB = 0,
+    EMB_SUB1 = 1,
+    SIM = 2,
+    TRUTH = 3,
+    PROBE = 4,
+    PROBE_SUB1 = 5
+  };
+  int GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode = EMB );
 
 
 };

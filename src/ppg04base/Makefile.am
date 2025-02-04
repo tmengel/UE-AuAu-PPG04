@@ -18,6 +18,11 @@ pkginclude_HEADERS = \
 lib_LTLIBRARIES = \
    libppg04base.la
 
+libppg04base_la_LDFLAGS = \
+  -L$(libdir) \
+  -L$(OFFLINE_MAIN)/lib \
+  `fastjet-config --libs`
+
 libppg04base_la_SOURCES = \
   CaloSpy.cc \
   CaloTowerManip.cc \
@@ -34,6 +39,7 @@ libppg04base_la_LIBADD = \
   -ljetbackground \
   -lfun4all \
   -lglobalvertex_io \
+  -lglobalvertex \
   -lphhepmc_io \
   -lphool \
   -lSubsysReco
