@@ -68,13 +68,13 @@ std::string GetOutputFile( const std::string & mode,
 }
 
 void Fun4All_PPG04( 
-    const std::string & mode = "DATA",
+    const std::string & mode = "HIJING",
     const std::string & prodTag = "ProdA_2023",
     const int timeStamp = 23745,
     const int nEvents = 10,
     const int doRandomEtaPhi = 0,
     const std::string & outdir = "./",
-    const std::string & dst_input_list0 = "dst_data.list",
+    const std::string & dst_input_list0 = "dst_calo_cluster.list",
     const std::string & dst_input_list1 = "dst_calo_waveform.list",
     const std::string & dst_input_list2 = "dst_mbd_epd.list"
 )
@@ -119,7 +119,7 @@ void Fun4All_PPG04(
     EventSelect::ZVrtxCutRange = {20,-20};
     // calo manipulation
     PPG04::doCaloManip = true;
-    CaloManip::doMinEMCalEnergy = true;
+    CaloManip::doMinEMCalEnergy = false;
     // CaloManip::MinEMCalEnergy = 0.05; // nominal
     CaloManip::MinEMCalEnergy = 0.150; // for 0.15 GeV
     CaloManip::doTowerRandomizer = ( doRandomEtaPhi == 1 );
@@ -150,12 +150,12 @@ void Fun4All_PPG04(
     rc -> set_uint64Flag( "TIMESTAMP", CDB::timestamp );
     rc -> set_IntFlag( "PPG04RANDOMSEED", PPG04::PPG04RandomSeed );
 
-    auto sync = new SyncReco( );
-    se -> registerSubsystem( sync );
-    auto head = new HeadReco( );
-    se -> registerSubsystem( head );
-    auto flag = new FlagHandler( );
-    se -> registerSubsystem( flag );
+    // auto sync = new SyncReco( );
+    // se -> registerSubsystem( sync );
+    // auto head = new HeadReco( );
+    // se -> registerSubsystem( head );
+    // auto flag = new FlagHandler( );
+    // se -> registerSubsystem( flag );
 
     // read in filelists
     for ( unsigned int idx = 0; idx < dst_files.size( ); idx++ ) {

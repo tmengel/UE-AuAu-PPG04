@@ -20,6 +20,8 @@
 #include <jetbase/JetReco.h>
 #include <jetbase/TowerJetInput.h>
 #include <g4jets/TruthJetInput.h>
+#include <jetbase/JetProbeInput.h>
+#include <jetbase/JetProbeMaker.h>
 
 #include <jetbackground/FastJetAlgoSub.h>
 #include <jetbackground/CopyAndSubtractJets.h>
@@ -67,6 +69,9 @@ namespace PPG04 {
     bool doIterBackground = false;
     bool doAreaRho = false;
     bool doMultRho = false;
+
+    bool doJetProbe = false;
+    bool doEmbedding = false;
     
     bool doRandomCones = false;
     bool doCaloWindows = false;
@@ -117,6 +122,14 @@ namespace CaloWindows {
     int VERBOSITY = 0;
     std::string WindowPrefix = "CaloWindowMap";    
 } // namespace CaloWindows
+
+namespace Embdedding {
+    std::string SrcTOP = "TOPData";
+    std::string TgtTOP = "TOP";
+    bool doSim = false;
+    bool doTruth = false;
+    std::string TruthJetNode = "AntiKt_Truth_r04";
+} 
 
 namespace PPG04CaloSpy {
     bool Normalize = false;
@@ -217,9 +230,9 @@ void AddCemcCaloWindowReco()
     return;
 }
 
+
 void InitPPG04()
 {
-    
     if ( PPG04::doAreaRho || PPG04::doMultRho ) {
 
         AddRhoReco( { Jet::CEMC_TOWERINFO, Jet::HCALIN_TOWERINFO, Jet::HCALOUT_TOWERINFO });
@@ -250,6 +263,8 @@ void InitPPG04()
         }
 
     }
+
+
 }
 
 void RunPPG04()
@@ -423,6 +438,7 @@ void RunPPG04()
     }
 
     if ( PPG04::doAnaWriter ){
+
         std::cout << "Output file: " << PPG04Output::outfile << std::endl; 
         PPG04::AnaWriterHandler = new PPG04AnaWriter(PPG04Output::outfile);
         PPG04::AnaWriterHandler -> Verbosity( PPG04::VERBOSITY );
@@ -435,6 +451,56 @@ void RunPPG04()
         for ( auto node : PPG04Output::RandomConesNodes ) { PPG04::AnaWriterHandler -> add_random_cone_node( node ); }
         if ( PPG04Output::doFullWindow ) { PPG04::AnaWriterHandler -> do_calo_window_ana( PPG04Output::FullWindowRetowerNode, PPG04Output::FullWindowHCALINNode, PPG04Output::FullWindowHCALOUTNode ); }
         if ( PPG04Output::doCemcOnlyWindow ) { PPG04::AnaWriterHandler -> do_calo_window_cemc_ana( PPG04Output::CemcOnlyNode ); }
+        if ( PPG04::doJetProbe ) {
+
+            TowerJetInput *incemc = new TowerJetInput(Jet::CEMC_TOWERINFO, PPG04::TowerPrefix);
+            TowerJetInput *inihcal = new TowerJetInput(Jet::HCALIN_TOWERINFO, PPG04::TowerPrefix);
+            TowerJetInput *inohcal = new TowerJetInput(Jet::HCALOUT_TOWERINFO, PPG04::TowerPrefix);
+            incemc->set_GlobalVertexType(GlobalVertex::MBD);
+            inihcal->set_GlobalVertexType(GlobalVertex::MBD);
+            inohcal->set_GlobalVertexType(GlobalVertex::MBD);
+            std::vector< JetInput * > jet_inputs = { incemc, inihcal, inohcal }; 
+            PPG04::AnaWriterHandler -> do_probe_jet( jet_inputs );
+
+            if ( PPG04::doIterBackground ) {
+                TowerJetInput *incemc_sub1 = new TowerJetInput(Jet::CEMC_TOWERINFO_SUB1, PPG04::TowerPrefix);
+                TowerJetInput *inihcal_sub1 = new TowerJetInput(Jet::HCALIN_TOWERINFO_SUB1, PPG04::TowerPrefix);
+                TowerJetInput *inohcal_sub1 = new TowerJetInput(Jet::HCALOUT_TOWERINFO_SUB1, PPG04::TowerPrefix);
+                incemc_sub1->set_GlobalVertexType(GlobalVertex::MBD);
+                inihcal_sub1->set_GlobalVertexType(GlobalVertex::MBD);
+                inohcal_sub1->set_GlobalVertexType(GlobalVertex::MBD);
+                std::vector< JetInput * > jet_inputs_sub1 = { incemc_sub1, inihcal_sub1, inohcal_sub1 }; 
+                PPG04::AnaWriterHandler -> do_probe_jet_sub1( jet_inputs_sub1 );
+            }
+        }
+        if ( PPG04::doEmbedding ) {
+
+            TowerJetInput *incemc = new TowerJetInput(Jet::CEMC_TOWERINFO, PPG04::TowerPrefix);
+            TowerJetInput *inihcal = new TowerJetInput(Jet::HCALIN_TOWERINFO, PPG04::TowerPrefix);
+            TowerJetInput *inohcal = new TowerJetInput(Jet::HCALOUT_TOWERINFO, PPG04::TowerPrefix);
+            incemc->set_GlobalVertexType(GlobalVertex::MBD);
+            inihcal->set_GlobalVertexType(GlobalVertex::MBD);
+            inohcal->set_GlobalVertexType(GlobalVertex::MBD);
+            std::vector< JetInput * > jet_inputs = { incemc, inihcal, inohcal }; 
+            PPG04::AnaWriterHandler -> do_emb_jet( jet_inputs );
+            if ( Embdedding::doSim ){
+                PPG04::AnaWriterHandler -> do_sim_jet( Embdedding::SrcTOP );
+            }
+           
+            if ( PPG04::isTRUTHJETS &&  Embdedding::doTruth ) {
+                PPG04::AnaWriterHandler -> do_truth_jet( Embdedding::TruthJetNode,  Embdedding::SrcTOP );
+            }
+            if ( PPG04::doIterBackground ) {
+                TowerJetInput *incemc_sub1 = new TowerJetInput(Jet::CEMC_TOWERINFO_SUB1, PPG04::TowerPrefix);
+                TowerJetInput *inihcal_sub1 = new TowerJetInput(Jet::HCALIN_TOWERINFO_SUB1, PPG04::TowerPrefix);
+                TowerJetInput *inohcal_sub1 = new TowerJetInput(Jet::HCALOUT_TOWERINFO_SUB1, PPG04::TowerPrefix);
+                incemc_sub1->set_GlobalVertexType(GlobalVertex::MBD);
+                inihcal_sub1->set_GlobalVertexType(GlobalVertex::MBD);
+                inohcal_sub1->set_GlobalVertexType(GlobalVertex::MBD);
+                std::vector< JetInput * > jet_inputs_sub1 = { incemc_sub1, inihcal_sub1, inohcal_sub1 }; 
+                PPG04::AnaWriterHandler -> do_emb_jet_sub1( jet_inputs_sub1 );
+            }
+        }
         se -> registerSubsystem( PPG04::AnaWriterHandler );
     }  
     return;
