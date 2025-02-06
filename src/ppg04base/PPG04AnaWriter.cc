@@ -314,6 +314,9 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
     int N_window_e_minus_avg_bins = 500;
     float window_e_minus_avg_min = -100.0;
     float window_e_minus_avg_max = 100.0;
+    // int N_window_e_minus_avg_scale_avg_bins = 500;
+    // float window_e_minus_avg_scale_avg_min = -10.0;
+    // float window_e_minus_avg_scale_avg_max = 10.0;
 
 
     m_h2_recemc_window_energy_cent.clear();
@@ -330,6 +333,10 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
     m_h2_hcalin_window_energy_minus_avg_energy_cent.clear();
     m_h2_hcalout_window_energy_minus_avg_energy_cent.clear();
     m_h2_full_window_energy_minus_avg_energy_cent.clear();
+    // m_h2_recemc_energy_minus_avg_scale_avg_energy_cent.clear();
+    // m_h2_hcalin_energy_minus_avg_scale_avg_energy_cent.clear();
+    // m_h2_hcalout_energy_minus_avg_scale_avg_energy_cent.clear();
+    // m_h2_full_energy_minus_avg_scale_avg_energy_cent.clear();
     for ( unsigned int i = 0; i < m_max_window_vector_size; i++) {
 
      TH2F * h2_cemc = new TH2F(Form("h2_window_energy_cent_recemc_%dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), Form("Window energy vs centrality CEMC %dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), 
@@ -418,6 +425,31 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
       h2_full_energy_minus_avg_energy_cent->GetXaxis()->SetTitle("Energy (GeV)");
       h2_full_energy_minus_avg_energy_cent->GetYaxis()->SetTitle("Centrality (%)");
       m_h2_full_window_energy_minus_avg_energy_cent.push_back(h2_full_energy_minus_avg_energy_cent);
+
+      // TH2F * h2_recemc_energy_minus_avg_scale_avg_energy_cent = new TH2F(Form("h2_window_energy_minus_avg_scale_avg_energy_cent_recemc_%dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), Form("Window energy minus avg energy vs centrality CEMC %dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), 
+          // N_window_e_minus_avg_scale_avg_bins, window_e_minus_avg_scale_avg_min, window_e_minus_avg_scale_avg_max, 100, 0, 100);
+      // h2_recemc_energy_minus_avg_scale_avg_energy_cent->GetXaxis()->SetTitle("Energy (GeV)");
+      // h2_recemc_energy_minus_avg_scale_avg_energy_cent->GetYaxis()->SetTitle("Centrality (%)");
+      // m_h2_recemc_energy_minus_avg_scale_avg_energy_cent.push_back(h2_recemc_energy_minus_avg_scale_avg_energy_cent);
+
+      // TH2F * h2_hcalin_energy_minus_avg_scale_avg_energy_cent = new TH2F(Form("h2_window_energy_minus_avg_scale_avg_energy_cent_hcalin_%dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), Form("Window energy minus avg energy vs centrality HCALIN %dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), 
+      //     N_window_e_minus_avg_scale_avg_bins, window_e_minus_avg_scale_avg_min, window_e_minus_avg_scale_avg_max, 100, 0, 100);
+      // h2_hcalin_energy_minus_avg_scale_avg_energy_cent->GetXaxis()->SetTitle("Energy (GeV)");
+      // h2_hcalin_energy_minus_avg_scale_avg_energy_cent->GetYaxis()->SetTitle("Centrality (%)");
+      // m_h2_hcalout_energy_minus_avg_scale_avg_energy_cent.push_back(h2_hcalin_energy_minus_avg_scale_avg_energy_cent);
+
+      // TH2F * h2_hcalout_energy_minus_avg_scale_avg_energy_cent = new TH2F(Form("h2_window_energy_minus_avg_scale_avg_energy_cent_hcalout_%dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), Form("Window energy minus avg energy vs centrality HCALOUT %dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), 
+      //     N_window_e_minus_avg_scale_avg_bins, window_e_minus_avg_scale_avg_min, window_e_minus_avg_scale_avg_max, 100, 0, 100);
+      // h2_hcalout_energy_minus_avg_scale_avg_energy_cent->GetXaxis()->SetTitle("Energy (GeV)");
+      // h2_hcalout_energy_minus_avg_scale_avg_energy_cent->GetYaxis()->SetTitle("Centrality (%)");
+      // m_h2_hcalout_energy_minus_avg_scale_avg_energy_cent.push_back(h2_hcalout_energy_minus_avg_scale_avg_energy_cent);
+
+      // TH2F * h2_full_energy_minus_avg_scale_avg_energy_cent = new TH2F(Form("h2_window_energy_minus_avg_scale_avg_energy_cent_full_%dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), Form("Window energy minus avg energy vs centrality FULL %dx%d", k_calo_window_dims_hcal_geom[i].first, k_calo_window_dims_hcal_geom[i].second), 
+      //     N_window_e_minus_avg_scale_avg_bins, window_e_minus_avg_scale_avg_min, window_e_minus_avg_scale_avg_max, 100, 0, 100);
+      // h2_full_energy_minus_avg_scale_avg_energy_cent->GetXaxis()->SetTitle("Energy (GeV)");
+      // h2_full_energy_minus_avg_scale_avg_energy_cent->GetYaxis()->SetTitle("Centrality (%)");
+      // m_h2_full_energy_minus_avg_scale_avg_energy_cent.push_back(h2_full_energy_minus_avg_scale_avg_energy_cent);
+
 
     }
 
@@ -741,6 +773,10 @@ int PPG04AnaWriter::End( PHCompositeNode * /*topNode*/ )
       m_h2_hcalin_window_energy_minus_avg_energy_cent[i]->Write();
       m_h2_hcalout_window_energy_minus_avg_energy_cent[i]->Write();
       m_h2_full_window_energy_minus_avg_energy_cent[i]->Write();
+      // m_h2_recemc_energy_minus_avg_scale_avg_energy_cent[i]->Write();
+      // m_h2_hcalin_energy_minus_avg_scale_avg_energy_cent[i]->Write();
+      // m_h2_hcalout_energy_minus_avg_scale_avg_energy_cent[i]->Write();
+      // m_h2_full_energy_minus_avg_scale_avg_energy_cent[i]->Write();
     }
   }
 
@@ -1281,19 +1317,23 @@ int PPG04AnaWriter::GetCaloWindowInfo( PHCompositeNode *topNode )
       int active = 0;
       if ( cemc_vec.at(j) != CaloWindowMap::kMASK_ENERGY ){
         m_h2_recemc_window_energy_minus_avg_energy_cent[i]->Fill(cemc_vec.at(j) - m_avg_energy_recemc[i], m_centrality);
+        // m_h2_recemc_energy_minus_avg_scale_avg_energy_cent[i]->Fill((cemc_vec.at(j) - m_avg_energy_recemc[i])/m_avg_energy_recemc[i], m_centrality);
         active++;
       }
       if ( hcalin_vec.at(j) != CaloWindowMap::kMASK_ENERGY ){
         m_h2_hcalin_window_energy_minus_avg_energy_cent[i]->Fill(hcalin_vec.at(j) - m_avg_energy_hcalin[i], m_centrality);
+        // m_h2_hcalin_energy_minus_avg_scale_avg_energy_cent[i]->Fill((hcalin_vec.at(j) - m_avg_energy_hcalin[i])/m_avg_energy_hcalin[i], m_centrality);
         active++;
       }
       if ( hcalout_vec.at(j) != CaloWindowMap::kMASK_ENERGY ){
         m_h2_hcalout_window_energy_minus_avg_energy_cent[i]->Fill(hcalout_vec.at(j) - m_avg_energy_hcalout[i], m_centrality);
+        // m_h2_hcalout_energy_minus_avg_scale_avg_energy_cent[i]->Fill((hcalout_vec.at(j) - m_avg_energy_hcalout[i])/m_avg_energy_hcalout[i], m_centrality);
         active++;
       }
       if ( active == 3 ) {
         float e_full = cemc_vec.at(j) + hcalin_vec.at(j) + hcalout_vec.at(j);
         m_h2_full_window_energy_minus_avg_energy_cent[i]->Fill(e_full - m_avg_energy_full[i], m_centrality);
+        // m_h2_full_energy_minus_avg_scale_avg_energy_cent[i]->Fill((e_full - m_avg_energy_full[i])/m_avg_energy_full[i], m_centrality);
       }
     }
 

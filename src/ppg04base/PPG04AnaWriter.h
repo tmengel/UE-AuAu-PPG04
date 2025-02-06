@@ -217,6 +217,10 @@ class PPG04AnaWriter : public SubsysReco
   std::vector < TH2* > m_h2_hcalin_window_energy_minus_avg_energy_cent {};
   std::vector < TH2* > m_h2_hcalout_window_energy_minus_avg_energy_cent {};
   std::vector < TH2* > m_h2_full_window_energy_minus_avg_energy_cent {};
+  // std::vector < TH2* > m_h2_recemc_energy_minus_avg_scale_avg_energy_cent {};
+  // std::vector < TH2* > m_h2_hcalin_energy_minus_avg_scale_avg_energy_cent {};
+  // std::vector < TH2* > m_h2_hcalout_energy_minus_avg_scale_avg_energy_cent {};
+  // std::vector < TH2* > m_h2_full_energy_minus_avg_scale_avg_energy_cent {};
 
   std::array < int, 11 > m_num_windows_full {};
   std::array < float, 11 > m_avg_energy_full{};
