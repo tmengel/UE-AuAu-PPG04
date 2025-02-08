@@ -84,11 +84,10 @@ std::string GetOutputFile( const std::string & mode,
 }
 
 void Fun4All_PPG04_2024( 
-    
     const std::string & mode = "DATA",
     const std::string & prodTag = "2024p009",
     const int timeStamp = 54912,
-    const int nEvents = 100,
+    const int nEvents = 10,
     const int doRunMode = 0,
     const std::string & outdir = "./",
     const std::string & dst_input_list0 = "dst_triggered_event_run2auau-00054912.list",
@@ -125,7 +124,7 @@ void Fun4All_PPG04_2024(
 
     PPG04::doEmbedding = ( doRunMode == 2 );
     PPG04::isTRUTHJETS = PPG04::doEmbedding && true;
-    Embdedding::doSim = PPG04::doEmbedding && true;
+    Embdedding::doSim = PPG04::doEmbedding && false;
     Embdedding::doTruth = PPG04::doEmbedding;
     Embdedding::SrcTOP = "TOPData";
     Embdedding::TgtTOP = "TOP";
@@ -137,9 +136,9 @@ void Fun4All_PPG04_2024(
     CALOCALIB::EmbdeddingSrcTOP =  Embdedding::SrcTOP;
     CALOCALIB::EmbdeddingTgtTOP = Embdedding::TgtTOP;
 
-    CALOFITTING::cemc_software_zs = 100;
-    CALOFITTING::ohcal_software_zs = 50;
-    CALOFITTING::ihcal_software_zs = 50;
+    CALOFITTING::cemc_software_zs = 60;
+    CALOFITTING::ohcal_software_zs = 30;
+    CALOFITTING::ihcal_software_zs = 30;
 
     // event selection
     PPG04::doEventSelect = true;
@@ -172,8 +171,8 @@ void Fun4All_PPG04_2024(
     PPG04Output::writeZVtx = true;
     PPG04Output::writeCent = true;
     PPG04Output::writeIterBackground = true;
-    PPG04Output::doFullWindow = PPG04::doCaloWindows;
-    PPG04Output::doCemcOnlyWindow = PPG04::doCaloWindows;  
+    PPG04Output::doFullWindow = PPG04::doCaloWindows && true;
+    PPG04Output::doCemcOnlyWindow = PPG04::doCaloWindows && false;
 
     // calo spy
     PPG04::doCaloSpy = PPG04::doCaloManip;
@@ -207,7 +206,6 @@ void Fun4All_PPG04_2024(
         se -> registerInputManager( input );
     
     }
-
     if ( PPG04::doEmbedding ) {
 
         auto sync = se->getSyncManager();
@@ -228,10 +226,10 @@ void Fun4All_PPG04_2024(
         input_mbd->Verbosity( 0 );
         se->registerInputManager(input_mbd);
         
-        auto input_global = new Fun4AllNoSyncDstInputManager("DSTGlobal","DST", CALOCALIB::EmbdeddingSrcTOP );
-        input_global->AddListFile( dst_input_list_emb3 );
-        input_global->Verbosity( 0 );
-        se->registerInputManager(input_global);
+        // auto input_global = new Fun4AllNoSyncDstInputManager("DSTGlobal","DST", CALOCALIB::EmbdeddingSrcTOP );
+        // input_global->AddListFile( dst_input_list_emb3 );
+        // input_global->Verbosity( 0 );
+        // se->registerInputManager(input_global);
     }
 
     if ( PPG04::isDATA ) {

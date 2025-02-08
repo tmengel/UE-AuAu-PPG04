@@ -104,7 +104,7 @@ def gen_run_list(anabuild, database, runnumber=-1, n_file_per_list=10):
 
     if runnumber > 0:
         # exicute the command to generate the runlist
-        os.system(f'CreateDstList.pl --build {anabuild} -cdb {database} DST_TRIGGERED_EVENT_run2auau --run {runnumber} > {log_file_path} 2>&1')
+        os.system(f'CreateDstList.pl --build {anabuild} -cdb {database} DST_CALOFITTING_run2auau --run {runnumber} > {log_file_path} 2>&1')
     else:
         # gen list of all runs
         os.system(f'CreateDstList.pl --build {anabuild} -cdb {database} DST_TRIGGERED_EVENT_run2auau --printruns > allruns.list')
