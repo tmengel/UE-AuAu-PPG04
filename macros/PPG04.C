@@ -239,12 +239,18 @@ void InitPPG04()
         AddRhoReco( { Jet::CEMC_TOWERINFO }, "CEMC" );
         AddRhoReco( { Jet::HCALIN_TOWERINFO }, "HCALIN" );
         AddRhoReco( { Jet::HCALOUT_TOWERINFO }, "HCALOUT" );
+
+        if ( PPG04::doIterBackground ) {
+            AddRhoReco({Jet::CEMC_TOWERINFO_RETOWER, Jet::HCALIN_TOWERINFO, Jet::HCALOUT_TOWERINFO }, "Re" );
+            AddRhoReco({Jet::CEMC_TOWERINFO_RETOWER}, "ReCEMC" );
+        }
     
     }
 
     if ( PPG04::doRandomCones ) {
     
         AddRandomConeReco( { Jet::CEMC_TOWERINFO, Jet::HCALIN_TOWERINFO, Jet::HCALOUT_TOWERINFO }, "RandomCones_r04" );
+        AddRandomConeReco( { Jet::CEMC_TOWERINFO_RETOWER, Jet::HCALIN_TOWERINFO, Jet::HCALOUT_TOWERINFO }, "RandomCones_r04_Re" );
         
         if ( PPG04::doIterBackground ) {
             AddRandomConeReco( { Jet::CEMC_TOWERINFO_SUB1, Jet::HCALIN_TOWERINFO_SUB1, Jet::HCALOUT_TOWERINFO_SUB1 }, "RandomCones_r04_Sub1" );

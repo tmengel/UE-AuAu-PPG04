@@ -9,9 +9,9 @@
 R__LOAD_LIBRARY(libcalo_reco.so)
 
 namespace CALOFITTING {
-  int cemc_software_zs = 100;
-  int ohcal_software_zs = 50;
-  int ihcal_software_zs = 50;
+  int cemc_software_zs = 60;
+  int ohcal_software_zs = 30;
+  int ihcal_software_zs = 30;
 }// namespace CALOFITTING
 
 void Process_Calo_Fitting()

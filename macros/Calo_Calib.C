@@ -104,52 +104,31 @@ void Process_Calo_Calib()
     calibEMC->set_detector_type(CaloTowerDefs::CEMC);
     calibEMC->setFieldName("Femc_datadriven_qm1_correction");
     calibEMC->set_directURL("/sphenix/user/egm2153/calib_study/emcal_calib_year1/54908_54921/local_calib_copy_iter33.root");
-    // calibEMC->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/CEMC_ZSCrossCalib_ana450_2024p009_54912.root");
+     // calibEMC->set_directURL("/sphenix/user/egm2153/calib_study/emcal_calib_year1/ana450_2024p009_54912_54921/local_calib_copy_iter15.root");
+    if ( CALOCALIB::isData ) { 
+      calibEMC->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/CEMC_ZSCrossCalib_ana450_2024p009_54912.root");
+    }
     se->registerSubsystem(calibEMC);
 
     std::cout << "Calibrating OHcal" << std::endl;
     CaloTowerCalib *calibOHCal = new CaloTowerCalib("HCALOUT");
     calibOHCal->set_detector_type(CaloTowerDefs::HCALOUT);
-    // calibOHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/ohcal_cdb_tsc_cos_calib.root");
     calibOHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ohcal_cdb_tsc_cos_calib.root");
-    // calibOHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALOUT_ZSCrossCalib_ana450_2024p009_54912.root");
+    if ( CALOCALIB::isData ) { 
+      calibOHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALOUT_ZSCrossCalib_ana450_2024p009_54912.root");
+    }
     se->registerSubsystem(calibOHCal);
 
     std::cout << "Calibrating IHcal" << std::endl;
     CaloTowerCalib *calibIHCal = new CaloTowerCalib("HCALIN");
     calibIHCal->set_detector_type(CaloTowerDefs::HCALIN);
-    // calibIHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/ihcal_cdb_tsc_cos_calib.root");
-    calibIHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ihcal_cdb_tsc_cos_calib.root");
-    // calibIHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALIN_ZSCrossCalib_ana450_2024p009_54912.root");
+    if ( CALOCALIB::isData ) { 
+      calibIHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ihcal_cdb_tsc_cos_calib.root");
+    }
+    calibIHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALIN_ZSCrossCalib_ana450_2024p009_54912.root");
     se->registerSubsystem(calibIHCal);
 
-    // std::cout << "Calibrating EMCal" << std::endl;
-    // CaloTowerCalib *calibEMC = new CaloTowerCalib("CEMCCALIB");
-    // calibEMC->set_detector_type(CaloTowerDefs::CEMC);
-    // calibEMC->setFieldName("Femc_datadriven_qm1_correction");
-    // calibEMC->set_directURL("/sphenix/user/egm2153/calib_study/emcal_calib_year1/ana450_2024p009_54912_54921/local_calib_copy_iter15.root");
-    // // if ( CALOCALIB::isData ) { 
-    //   // calibEMC->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/CEMC_ZSCrossCalib_ana450_2024p009_54912.root"); 
-    // // }
-    // se->registerSubsystem(calibEMC);
-
-    // std::cout << "Calibrating OHcal" << std::endl;
-    // CaloTowerCalib *calibOHCal = new CaloTowerCalib("HCALOUT");
-    // calibOHCal->set_detector_type(CaloTowerDefs::HCALOUT);
-    // // calibOHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ohcal_cdb_tsc_cos_calib.root");
-    // // if ( CALOCALIB::isData ) { 
-    //   // calibOHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALOUT_ZSCrossCalib_ana450_2024p009_54912.root"); 
-    // // }
-    // se->registerSubsystem(calibOHCal);
-
-    // std::cout << "Calibrating IHcal" << std::endl;
-    // CaloTowerCalib *calibIHCal = new CaloTowerCalib("HCALIN");
-    // calibIHCal->set_detector_type(CaloTowerDefs::HCALIN);
-    // calibIHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ihcal_cdb_tsc_cos_calib.root");
-    // // if ( CALOCALIB::isData ) { 
-    //   // calibIHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALIN_ZSCrossCalib_ana450_2024p009_54912.root");
-    // // }
-    // se->registerSubsystem(calibIHCal);
+  
   } else {
     // Calibrate towers
     std::cout << "Calibrating EMCal" << std::endl;
