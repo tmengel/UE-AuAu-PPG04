@@ -150,9 +150,9 @@ void Fun4All_PPG04_2024(
     // EventSelect::ZVrtxCutRange = {20,10};
     
     // background subtraction
-    PPG04::doIterBackground =  PPG04::isDATA;
-    PPG04::doAreaRho =  PPG04::isDATA;
-    PPG04::doMultRho =  PPG04::isDATA;
+    // PPG04::doIterBackground =  PPG04::isDATA;
+    // PPG04::doAreaRho =  PPG04::isDATA;
+    // PPG04::doMultRho =  PPG04::isDATA;
 
     // Set up F4A
     auto se = Fun4AllServer::instance();
@@ -188,8 +188,6 @@ void Fun4All_PPG04_2024(
         se -> registerInputManager( input );
     
     }
-
-    
 
     CALOFITTING::cemc_software_zs = 60;
     CALOFITTING::ohcal_software_zs = 30;

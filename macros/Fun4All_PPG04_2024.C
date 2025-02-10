@@ -88,7 +88,7 @@ void Fun4All_PPG04_2024(
     const std::string & prodTag = "2024p009",
     const int timeStamp = 54912,
     const int nEvents = 10,
-    const int doRunMode = 0,
+    const int doRunMode = 1,
     const std::string & outdir = "./",
     const std::string & dst_input_list0 = "dst_triggered_event_run2auau-00054912.list",
     const std::string & dst_input_list1 = "dst_calo_waveform.list",
@@ -175,7 +175,7 @@ void Fun4All_PPG04_2024(
     PPG04Output::doCemcOnlyWindow = PPG04::doCaloWindows && false;
 
     // calo spy
-    PPG04::doCaloSpy = PPG04::doCaloManip;
+    PPG04::doCaloSpy = PPG04::doCaloManip && false;
     PPG04CaloSpy::outfile = GetOutputFile( mode, prodTag, timeStamp, doRunMode, outdir, dst_input_list0 , "CALOSPY-");
     PPG04CaloSpy::Normalize = false;
     

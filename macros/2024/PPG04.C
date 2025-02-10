@@ -305,7 +305,16 @@ void RunPPG04()
         se -> registerSubsystem( PPG04::EventSelectorHandler );
     }
 
+
+    auto rcemc = new RetowerCEMC();
+    rcemc -> Verbosity( Enable::VERBOSITY );
+    rcemc -> set_towerinfo( true );
+    rcemc -> set_frac_cut( 0.5 );
+    rcemc -> set_towerNodePrefix( PPG04::TowerPrefix );
+    se -> registerSubsystem( rcemc );
+
     if ( PPG04::doCaloManip ) { 
+
         int verbosity = std::max( PPG04::VERBOSITY, CaloManip::VERBOSITY );
         auto ctm = new CaloTowerManip( );
         ctm -> Verbosity( verbosity );
@@ -320,20 +329,10 @@ void RunPPG04()
         se -> registerSubsystem( ctm );
         PPG04CaloSpy::CaloSpyNodes.push_back( "TOWERINFO_CALIB_CEMC" );
         PPG04CaloSpy::CaloSpyNodes.push_back( "TOWERINFO_CALIB_CEMC_ORIGINAL" );
-    }
 
-    auto rcemc = new RetowerCEMC();
-    rcemc -> Verbosity( 0 );
-    rcemc -> set_towerinfo( true );
-    rcemc -> set_frac_cut( 0.5 );
-    rcemc -> set_towerNodePrefix( PPG04::TowerPrefix );
-    se -> registerSubsystem( rcemc );
+       
 
-    if ( PPG04::doCaloManip && CaloManip::doTowerRandomizer ) { 
-        
-        int verbosity = std::max( PPG04::VERBOSITY, CaloManip::VERBOSITY );
-
-        auto ctm = new CaloTowerManip( );
+        ctm = new CaloTowerManip( );
         ctm -> Verbosity( verbosity );
         ctm -> SetInputNode( "TOWERINFO_CALIB_CEMC_RETOWER" );
         ctm -> SaveCopyOutputNode( "TOWERINFO_CALIB_CEMC_RETOWER_ORIGINAL" );
