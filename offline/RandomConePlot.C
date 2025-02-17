@@ -19,7 +19,7 @@ const std::string sPHENIX_Tag = "#it{#bf{sPHENIX}} Internal";
 
 bool DO_OVERRIDE = true;
 
-const float CENT_BINS[] = {0, 10, 20, 30, 40, 50, 60, 70, 80, 100};
+const float CENT_BINS[] = {0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 100};
 const int N_CENT_BINS = sizeof(CENT_BINS)/sizeof(CENT_BINS[0]) - 1;
 
 const int N_SUM_ET_BINS = 10;
@@ -36,11 +36,11 @@ float MAX_SUM_Q = 2200;
 const float V2_VALUES[] = { 3.39, 4.76, 6.18, 7.03, 7.4, 7.44, 7.23, 6.96};
 const float V3_VALUES[] = { 1.62, 1.76, 1.9, 1.99, 2.05, 1.92, 1.75, 1.57};
 
-const float X_CENT_BINS[]= {0, 10, 20, 30, 40, 50, 60, 70, 80};
+const float X_CENT_BINS[]= {0, 5, 10, 20, 30, 40, 50, 60, 70, 80};
 const int N_X_CENT_BINS = sizeof(X_CENT_BINS)/sizeof(X_CENT_BINS[0]) - 1;
 float MAX_X_CENT = 80;
 
-const float X_COURSE_CENT_BINS[]= {0, 10, 20, 30, 40, 50, 60, 70, 80};
+const float X_COURSE_CENT_BINS[]= {0, 5, 10, 20, 30, 40, 50, 60, 70, 80};
 const int N_COURSE_X_BINS = sizeof(X_COURSE_CENT_BINS)/sizeof(X_COURSE_CENT_BINS[0]) - 1;
 
 const int N_CONECOMP_BINS = 500;
@@ -55,6 +55,10 @@ const int N_CONE_DET_BINS = 250;
 float MAX_CONE_DET = 60;
 float CONE_DET_BINS[N_CONE_DET_BINS+1];
 
+const int N_PROBE_DET_BINS = 250;
+float MAX_PROBE_DET = 150;
+float PROBE_DET_BINS[N_PROBE_DET_BINS+1];
+
 
 
 void SetBins(){
@@ -63,6 +67,7 @@ void SetBins(){
     for ( int i = 0; i < N_CONECOMP_BINS+1; ++i ) { CONECOMP_BINS[i] = 500 + i*CONECOMP_MAX/N_CONECOMP_BINS; }
     for ( int i = 0; i < N_CONECOMP_SUB1_BINS+1; ++i ) { CONECOMP_SUB1_BINS[i] = i*CONECOMP_SUB1_MAX/N_CONECOMP_SUB1_BINS; }
     for ( int i = 0; i < N_CONE_DET_BINS+1; ++i ) { CONE_DET_BINS[i] = -MAX_CONE_DET + i*2*MAX_CONE_DET/N_CONE_DET_BINS; }
+    for ( int i = 0; i < N_PROBE_DET_BINS+1; ++i ) { PROBE_DET_BINS[i] = -10 + i*MAX_PROBE_DET/N_PROBE_DET_BINS; }
 }
 
 const float AREA_CONE = TMath::Pi()*0.4*0.4;
@@ -90,6 +95,7 @@ std::string MakeGetDir( const std::string & dir ){
 }
 
 std::string ProcessRandomConeTree(const std::string & input_file, const std::string & prefix, bool x_axis_cent = true);
+std::string ProcessProbeTree(const std::string & input_file, const std::string & prefix, bool x_axis_cent = true);
 
 float CalcPoissonHarm(const float sum2, const float sum, const float n, const float ncomp, const float ncones,  const float v2 = 0 , const float v3 = 0){
     if ( n == 0 ) { return 0;}
@@ -291,8 +297,8 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
 
 
 }
-void RandomConePlot(const std::string & input_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/dsts/DATA/feb7_basic.root",
-                    const std::string & random_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/dsts/DATA/feb7_random.root") 
+void RandomConePlot(const std::string & input_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/FEB7/feb7_basic.root",
+                    const std::string & random_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/FEB10/feb10_random.root") 
                     {
 
     
@@ -300,7 +306,7 @@ void RandomConePlot(const std::string & input_file = "/sphenix/user/tmengel/UE-A
     TH2::SetDefaultSumw2();
     TH3::SetDefaultSumw2();
     SetsPhenixStyle();
-    
+    // const std::string & pr
     gErrorIgnoreLevel = kWarning;
     gStyle->SetOptStat(0);
     gStyle->SetOptFit(0);
@@ -329,14 +335,16 @@ void RandomConePlot(const std::string & input_file = "/sphenix/user/tmengel/UE-A
     bool override= true;
     std::string basic_hist;
     std::string rand_hist;
+    std::string probe_hist;
     if (override) {
-        basic_hist = ProcessRandomConeTree(input_file, "basic", true);
-        rand_hist = ProcessRandomConeTree(random_file, "random", true);
+        // basic_hist = ProcessRandomConeTree(input_file, "basic", true);
+        // rand_hist = ProcessRandomConeTree(random_file, "random", true);
+        probe_hist = ProcessProbeTree(input_file, "probe", true);
     } else {
         basic_hist = random_cone_plots + "/basic/xaxis_cent/random_cone_plots.root";
         rand_hist = random_cone_plots + "/random/xaxis_cent/random_cone_plots.root";
     }
-    MakeSigmaPlot(basic_hist, rand_hist);
+    // MakeSigmaPlot(basic_hist, rand_hist);
     gSystem->Exit(0);
   
    
@@ -1090,6 +1098,399 @@ std::string ProcessRandomConeTree(const std::string & input_file, const std::str
     
 
     return outdir+"/random_cone_plots.root";
+    
+}
+
+std::string ProcessProbeTree(const std::string & input_file, const std::string & prefix ,bool x_axis_cent )
+{
+
+    bool x_axis_sum_et = !x_axis_cent;
+    std::string outdir = random_cone_plots;
+    outdir += "/" + prefix;
+    if (x_axis_cent) { outdir += "/xaxis_cent"; }
+    if (x_axis_sum_et) { outdir += "/xaxis_sum_et"; }
+    if( !gSystem->OpenDirectory(outdir.c_str()) ) {
+        gSystem->mkdir(outdir.c_str(), true);
+    }
+
+    TFile * f = new TFile(input_file.c_str(), "READ");
+    if( !f->IsOpen() || f->IsZombie() ) { std::cout << "File " << input_file << " is zombie" << std::endl;  exit(1); }
+
+    TTree * t = (TTree*)f->Get("T");
+    
+    // tree branches 
+        float mbd_q_N = 0;
+        float mbd_q_S = 0;
+        t->SetBranchAddress("mbd_q_N", &mbd_q_N);
+        t->SetBranchAddress("mbd_q_S", &mbd_q_S);
+        
+        int centrality = 0;
+        t->SetBranchAddress("centrality", &centrality);
+
+        float rho_val_TowerRho_AREA = 0;
+        float std_rho_val_TowerRho_AREA = 0;
+        t->SetBranchAddress("rho_val_TowerRho_AREA", &rho_val_TowerRho_AREA);
+        t->SetBranchAddress("std_rho_val_TowerRho_AREA", &std_rho_val_TowerRho_AREA);
+        
+        float rho_val_TowerRho_MULT = 0;
+        float std_rho_val_TowerRho_MULT = 0;
+        t->SetBranchAddress("rho_val_TowerRho_MULT", &rho_val_TowerRho_MULT);
+        t->SetBranchAddress("std_rho_val_TowerRho_MULT", &std_rho_val_TowerRho_MULT);
+
+        float probe_jet_truth_energy = 0;
+        float probe_jet_sub1_truth_energy = 0;
+        float probe_jet_energy = 0;
+        float probe_jet_sub1_energy = 0;
+        float probe_jet_area = 0;
+        float probe_jet_sub1_area = 0;
+        int probe_jet_num_towers = 0;
+        int probe_jet_sub1_num_towers = 0;
+        t->SetBranchAddress("probe_jet_truth_energy", &probe_jet_truth_energy);
+        t->SetBranchAddress("probe_jet_sub1_truth_energy", &probe_jet_sub1_truth_energy);
+        t->SetBranchAddress("probe_jet_area", &probe_jet_area);
+        t->SetBranchAddress("probe_jet_sub1_area", &probe_jet_sub1_area);
+        t->SetBranchAddress("probe_jet_num_towers", &probe_jet_num_towers);
+        t->SetBranchAddress("probe_jet_sub1_num_towers", &probe_jet_sub1_num_towers);
+        t->SetBranchAddress("probe_jet_energy", &probe_jet_energy);
+        t->SetBranchAddress("probe_jet_sub1_energy", &probe_jet_sub1_energy);
+
+
+    int nentries = t->GetEntries();
+    std::cout << "Processing " << nentries << " events" << std::endl;
+    TH2F * h2_area_cone_res_vs_x;
+    TH2F * h2_mult_cone_res_vs_x;
+    TH2F * h2_sub1_cone_res_vs_x;
+    // TH1F * h1_raw_cone_et[N_CONE_DET_BINS]; 
+    
+    if ( x_axis_sum_et ) {
+
+        h2_area_cone_res_vs_x = new TH2F("h2_area_cone_res_vs_x", "h2_area_cone_res_vs_x", N_SUM_ET_BINS, SUM_ET_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+        h2_mult_cone_res_vs_x = new TH2F("h2_mult_cone_res_vs_x", "h2_mult_cone_res_vs_x", N_SUM_ET_BINS, SUM_ET_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+        h2_sub1_cone_res_vs_x = new TH2F("h2_sub1_cone_res_vs_x", "h2_sub1_cone_res_vs_x", N_SUM_ET_BINS, SUM_ET_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+        std::vector<TH2F*> h2s = {h2_area_cone_res_vs_x, h2_mult_cone_res_vs_x, h2_sub1_cone_res_vs_x};
+        
+        for ( auto h2 : h2s ) {
+            h2->GetXaxis()->SetTitle("#Sigma E_{T}^{Raw} [GeV]");
+        }
+    } else {
+        h2_area_cone_res_vs_x = new TH2F("h2_area_cone_res_vs_x", "h2_area_cone_res_vs_x", N_X_CENT_BINS, X_CENT_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+        h2_mult_cone_res_vs_x = new TH2F("h2_mult_cone_res_vs_x", "h2_mult_cone_res_vs_x", N_X_CENT_BINS, X_CENT_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+        h2_sub1_cone_res_vs_x = new TH2F("h2_sub1_cone_res_vs_x", "h2_sub1_cone_res_vs_x", N_X_CENT_BINS, X_CENT_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+        std::vector<TH2F*> h2s = {h2_area_cone_res_vs_x, h2_mult_cone_res_vs_x, h2_sub1_cone_res_vs_x};
+        for ( auto h2 : h2s ) {
+            h2->GetXaxis()->SetTitle("Centrality [%]");
+        }
+    }
+
+    h2_area_cone_res_vs_x->GetYaxis()->SetTitle("#delta E_{T}^{Cone} [GeV]");
+    h2_mult_cone_res_vs_x->GetYaxis()->SetTitle("#delta E_{T}^{Cone} [GeV]");
+    h2_sub1_cone_res_vs_x->GetYaxis()->SetTitle("#delta E_{T}^{Cone} [GeV]");
+
+    const int N_COURSE_X_BINS = 8;
+    TH1F * h1_raw_cone_et[N_COURSE_X_BINS+1]; 
+    float COURSE_X_BINS[N_COURSE_X_BINS+1];
+    float MAX_COURSE_X = 1800;
+    if (x_axis_cent){ MAX_COURSE_X = MAX_X_CENT; }
+    for ( int i = 0; i < N_COURSE_X_BINS+1; ++i ) { COURSE_X_BINS[i] = i*MAX_COURSE_X/N_COURSE_X_BINS; }
+    TH2F * h2_area_cone_res_vs_course_x = new TH2F("h2_area_cone_res_vs_course_x", "h2_area_cone_res_vs_course_x", 
+        N_COURSE_X_BINS, COURSE_X_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+    TH2F * h2_mult_cone_res_vs_course_x = new TH2F("h2_mult_cone_res_vs_course_x", "h2_mult_cone_res_vs_course_x",
+        N_COURSE_X_BINS, COURSE_X_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+    TH2F * h2_sub1_cone_res_vs_course_x = new TH2F("h2_sub1_cone_res_vs_course_x", "h2_sub1_cone_res_vs_course_x",
+        N_COURSE_X_BINS, COURSE_X_BINS, N_PROBE_DET_BINS, PROBE_DET_BINS);
+    
+    std::vector<TH2F*> h2s_course_x = {h2_area_cone_res_vs_course_x, h2_mult_cone_res_vs_course_x, h2_sub1_cone_res_vs_course_x};
+    for ( auto h2 : h2s_course_x ) {
+        if (x_axis_sum_et) {
+            h2->GetXaxis()->SetTitle("#Sigma E_{T}^{Raw} [GeV]");
+        } else {
+            h2->GetXaxis()->SetTitle("Centrality [%]");
+        }
+        h2->GetYaxis()->SetTitle("#delta E_{T}^{Cone} [GeV]");
+    }
+
+    for ( int i = 0; i <= N_COURSE_X_BINS; ++i ) {
+        h1_raw_cone_et[i] = new TH1F(Form("h1_raw_cone_et_%d", i), Form("h1_raw_cone_et_%d", i), 120, -10, 110);
+        h1_raw_cone_et[i]->GetXaxis()->SetTitle("E_{T}^{Cone} [GeV]");
+    }
+
+    
+   
+
+    float N_CEMC_TOWERS = 256*94;
+    float N_HCALIN_TOWERS = 24*64;
+    float N_HCALOUT_TOWERS = 24*64;
+    for ( int i = 0; i < nentries; ++i ) {
+       
+        t->GetEntry(i);
+        float xaxis_var =1.0*centrality;
+        if ( x_axis_cent ) { xaxis_var = 1.0*centrality; }
+
+
+        float area_bkgd = rho_val_TowerRho_AREA*probe_jet_area - probe_jet_truth_energy;
+        float mult_bkgd = rho_val_TowerRho_MULT*probe_jet_num_towers -probe_jet_truth_energy;
+        float sub1_bkdg = -1.0*(probe_jet_sub1_truth_energy);
+        float cone_res_area = probe_jet_energy - area_bkgd;
+        float cone_res_mult = probe_jet_energy - mult_bkgd;
+        float cone_res_sub1 = probe_jet_sub1_energy - sub1_bkdg;
+        if ( cone_res_area == 0 || cone_res_mult == 0 || cone_res_sub1 == 0 ) { continue; }
+
+       
+      
+        // fill histograms
+        h2_area_cone_res_vs_x->Fill(xaxis_var, cone_res_area);
+        h2_mult_cone_res_vs_x->Fill(xaxis_var, cone_res_mult);
+        h2_sub1_cone_res_vs_x->Fill(xaxis_var, cone_res_sub1);
+        h2_area_cone_res_vs_course_x->Fill(xaxis_var, cone_res_area);
+        h2_mult_cone_res_vs_course_x->Fill(xaxis_var, cone_res_mult);
+        h2_sub1_cone_res_vs_course_x->Fill(xaxis_var, cone_res_sub1);
+
+
+    }
+
+    
+    TCanvas * c;
+    TLatex * tex = new TLatex();
+    tex->SetNDC();
+    tex->SetTextFont(42);
+    gStyle->SetOptStat(0);
+    gStyle->SetOptFit(0);
+    gStyle->SetOptTitle(0);
+
+
+    // start with 3x3 of course x bins
+    c = new TCanvas("c", "c", 400*3, 400*3);
+    c->Divide(3,3);
+    double tx=0.45;
+    double ty_start=0.85;
+    
+    TLegend * leg = new TLegend(0.18,0.5,0.35,0.7);
+    leg->SetBorderSize(0);
+    leg->SetFillStyle(0);
+
+    std::vector<TH2F*> h2s = {h2_area_cone_res_vs_course_x, h2_mult_cone_res_vs_course_x, h2_sub1_cone_res_vs_course_x};
+    std::vector<std::string> labs = {"Area", "Multiplicity", "Iterative"};
+    for ( unsigned islice = 0; islice < N_COURSE_X_BINS; islice++ ){
+        c->cd(islice+1);
+        gPad->SetLogy();
+        gPad->SetLeftMargin(0.15);
+        gPad->SetRightMargin(0.1);
+        gPad->SetBottomMargin(0.15);
+        gPad->SetTopMargin(0.05);
+
+        double miny = 1e-4;
+        int ihist = 0;
+        std::vector<std::string> tags = {sPHENIX_Tag, DataType_Tag};
+        std::string leg_title = Form("%0.0f < #Sigma E_{T}^{Raw} < %0.0f GeV", COURSE_X_BINS[islice], COURSE_X_BINS[islice+1]);
+        if ( x_axis_cent ) { leg_title = Form("%0.0f-%0.0f %%", COURSE_X_BINS[islice], COURSE_X_BINS[islice+1]); }
+        tags.push_back(leg_title);
+        for ( auto h2 : h2s ) {
+            h2->GetXaxis()->SetRange(islice+1, islice+1);
+            TH1F * h1 = (TH1F*)h2->ProjectionY(Form("h1_%s_%d", h2->GetTitle(), islice));
+            h1->SetLineColor(COLORS[ihist]);
+            h1->SetMarkerColor(COLORS[ihist]);
+            h1->SetMarkerStyle(MARKERS[ihist]);
+            // h1->Scale(1.0/h1->Integral());
+            // h1->GetYaxis()->SetRangeUser(miny, 1e1);
+            int lastbin_above_threshold = 0;
+            lastbin_above_threshold = h1->FindLastBinAbove(miny);
+            // h1->GetXaxis()->SetRangeUser(-1.2*h1->GetBinCenter(lastbin_above_threshold), 1.2*h1->GetBinCenter(lastbin_above_threshold));
+            // h1->GetXaxis()->SetRangeUser(-40, 40);
+            if ( ihist == 0 ) { h1->Draw("p"); }
+            else { h1->Draw("p same"); }
+            if ( islice == 0 ) { leg->AddEntry(h1, labs[ihist].c_str(), "lp"); }
+            ihist++;
+        }
+
+        double ty = ty_start;
+        for ( auto tag : tags ) {
+            tex->DrawLatex(tx, ty, tag.c_str());
+            ty -= 0.05;
+        }
+
+        leg->Draw("same");
+    } 
+    c->SaveAs((outdir+"/cone_res_vs_course_x_slices.png").c_str());
+
+    delete c;
+    delete leg;
+
+    const int NX_BINS = h2_area_cone_res_vs_x->GetNbinsX();
+    h2s.clear();
+    leg = new TLegend(0.18,0.5,0.35,0.7);
+    leg->SetBorderSize(0);
+    leg->SetFillStyle(0);
+    h2s = {h2_area_cone_res_vs_x, h2_mult_cone_res_vs_x, h2_sub1_cone_res_vs_x};
+    TGraphErrors * g_std_devs[h2s.size()];
+    for ( unsigned ihist = 0; ihist < h2s.size(); ihist++ ) {
+        g_std_devs[ihist] = new TGraphErrors(NX_BINS);
+    }
+    for ( unsigned ibin = 0; ibin < NX_BINS; ibin++ ) {
+        c = new TCanvas("c", "c", 3*400, 400);
+        c->Divide(3,1);
+             
+        double miny = 1e-3;
+        int ihist = 0;
+     
+        
+        for ( auto h2 : h2s ) {
+
+            c->cd(ihist+1);
+            gPad->SetLogy();
+            gPad->SetLeftMargin(0.15);
+            gPad->SetRightMargin(0.1);
+            gPad->SetBottomMargin(0.15);
+            gPad->SetTopMargin(0.05);
+
+            std::vector<std::string> tags = {sPHENIX_Tag, DataType_Tag};
+            tags.push_back(labs[ihist]);
+            std::string leg_title = Form("%0.0f < #Sigma E_{T}^{Raw} < %0.0f GeV", h2->GetXaxis()->GetBinLowEdge(ibin+1), h2->GetXaxis()->GetBinUpEdge(ibin+1)); 
+            if ( x_axis_cent ) { leg_title = Form("%0.0f-%0.0f %%", h2->GetXaxis()->GetBinLowEdge(ibin+1), h2->GetXaxis()->GetBinUpEdge(ibin+1)); }
+            tags.push_back(leg_title);
+
+            h2->GetXaxis()->SetRange(ibin+1, ibin+1);
+            TH1F * h1 = (TH1F*)h2->ProjectionY(Form("h1_%s_%d", h2->GetTitle(), ibin));
+            h1->SetLineColor(COLORS[ihist]);
+            h1->SetMarkerColor(COLORS[ihist]);
+            h1->SetMarkerStyle(MARKERS[ihist]);
+            h1->Scale(1.0/h1->Integral());
+            h1->GetYaxis()->SetRangeUser(miny, 1e1);
+            int lastbin_above_threshold = 0;
+            lastbin_above_threshold = h1->FindLastBinAbove(miny);
+            // float abs_max_x = 1.2*h1->GetBinCenter(lastbin_above_threshold);
+            float abs_max_x = 40;
+            h1->GetXaxis()->SetRangeUser(-abs_max_x, abs_max_x);
+
+            // Fit with Gaussian (do not display)
+            float avg = h1->GetMean();
+            float std = h1->GetRMS();
+
+            // int mean_bin = h1->FindBin(avg);
+            // h1->GetXaxis()->SetRange(1, mean_bin);
+            // TF1 * f1 = new TF1("f1", "gaus", -abs_max_x, abs_max_x);
+            // h1->Fit(f1, "RQ", "", -abs_max_x, avg); // left side of peak
+            // float mean_left = f1->GetParameter(1);
+            // float sigma_left = f1->GetParameter(2);
+            // h1->Fit(f1, "RQ", "", mean_left - 1.5*sigma_left, avg); // left side of peak
+            // mean_left = f1->GetParameter(1);
+            // sigma_left = f1->GetParameter(2);
+            // float mean_left_err = f1->GetParError(1);
+            // float sigma_left_err = f1->GetParError(2);
+            // TF1 * fitfunc = h1->GetFunction("f1");
+            // fitfunc->SetLineColor(kRed);
+            // fitfunc->SetLineStyle(2);
+            // fitfunc->SetLineWidth(2);
+            // float chi2 = fitfunc->GetChisquare();
+
+            g_std_devs[ihist]->SetPoint(ibin, h2->GetXaxis()->GetBinCenter(ibin+1), std);
+            g_std_devs[ihist]->SetPointError(ibin, h2->GetXaxis()->GetBinWidth(ibin+1)/2.0, 0);
+
+            // h1->GetXaxis()->SetRange(1, h1->GetNbinsX());
+            // TF1 * f2_gamma = new TF1("f2_gamma", "[0]*([1]/TMath::Gamma([2]))*TMath::Power([1]*x + [2], [2]-1)*TMath::Exp(-[1]*x - [2])",-1.2*h1->GetBinCenter(lastbin_above_threshold), 1.2*h1->GetBinCenter(lastbin_above_threshold));
+            // h1->Fit(f2_gamma, "RQ", "", -abs_max_x, abs_max_x);
+            // float gamma_ab = f2_gamma->GetParameter(1);
+            // float gamma_ap = f2_gamma->GetParameter(2);
+            // float gamma_norm = f2_gamma->GetParameter(0);
+            // float gamma_mean = gamma_ap/gamma_ab;
+            // float gamma_sigma = TMath::Sqrt(gamma_ap)/gamma_ab;  
+            // h1->Fit(f2_gamma, "RQ", "", gamma_mean - 1.5*gamma_sigma, gamma_mean + 1.5*gamma_sigma);
+            // gamma_ab = f2_gamma->GetParameter(1);
+            // gamma_ap = f2_gamma->GetParameter(2);
+            // gamma_norm = f2_gamma->GetParameter(0);
+            // gamma_mean = gamma_ap/gamma_ab;
+            // gamma_sigma = TMath::Sqrt(gamma_ap)/gamma_ab;
+            // float gamma_ab_err = f2_gamma->GetParError(1);
+            // float gamma_ap_err = f2_gamma->GetParError(2);
+            // float gamma_mean_err = std::sqrt((gamma_ap_err/gamma_ab)*(gamma_ap_err/gamma_ab) + (gamma_ab_err/gamma_ab)*(gamma_ab_err/gamma_ab))*gamma_mean;
+            // float gamma_sigma_err = std::sqrt((0.5*(gamma_ap_err/gamma_ap))*(0.5*(gamma_ap_err/gamma_ap)) + (gamma_ab_err/gamma_ab)*(gamma_ab_err/gamma_ab))*gamma_sigma;
+            // TF1 * fitfunc_gamma = h1->GetFunction("f2_gamma");
+            // fitfunc_gamma->SetLineColor(kAzure);
+            // fitfunc_gamma->SetLineStyle(2);
+            // fitfunc_gamma->SetLineWidth(2);
+            // float chi2_gamma = fitfunc_gamma->GetChisquare();
+            h1->GetXaxis()->SetRangeUser(-abs_max_x, abs_max_x);
+            h1->Draw("p");
+            leg->AddEntry(h1, Form("#mu = %0.2f, #sigma = %0.2f", avg, std), "p");
+            // leg->AddEntry(fitfunc, Form("#mu_{LHS} = %0.2f #pm %0.2f, #sigma_{LHS} = %0.2f #pm %0.2f", mean_left, mean_left_err, sigma_left, sigma_left_err), "l");
+            // leg->AddEntry(fitfunc_gamma, Form("a_{b} = %0.2f #pm %0.2f, a_{p} = %0.2f #pm %0.2f", gamma_ab, gamma_ab_err, gamma_ap, gamma_ap_err), "l");
+
+            double ty = ty_start;
+            for ( auto tag : tags ) {
+                tex->DrawLatex(tx, ty, tag.c_str());
+                ty -= 0.05;
+            }
+
+            leg->Draw("same");
+            ihist++;
+            c->Update();
+            leg->Clear();
+        }
+        std::cout << "done with slice " << ibin << std::endl;
+
+        c->SaveAs((outdir+"/cone_res_vs_x_slice_"+std::to_string(ibin)+".png").c_str());
+        leg->Clear();
+        delete c;
+    }
+
+
+
+    TLegend * leg2 = new TLegend(0.18,0.5,0.35,0.7);
+    leg2->SetBorderSize(0);
+    leg2->SetFillStyle(0);
+    c = new TCanvas("c", "c", 800, 600);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetRightMargin(0.1);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetTopMargin(0.05);
+  
+
+    int mycolors[3] = {kRed, kBlue, kCyan};
+    for ( unsigned ihist = 0; ihist < h2s.size(); ihist++ ) {
+       
+        g_std_devs[ihist]->SetMarkerStyle(MARKERS[ihist+1]);
+        g_std_devs[ihist]->SetMarkerColor(mycolors[ihist]);
+        g_std_devs[ihist]->SetMarkerSize(1.5);
+        g_std_devs[ihist]->GetXaxis()->SetNdivisions(505);
+        // g_std_devs[ihist]->GetXaxis()->SetRangeUser(0, 1800);
+        g_std_devs[ihist]->GetYaxis()->SetTitle("#sigma_{LHS} [GeV]");
+        if ( x_axis_cent ) { g_std_devs[ihist]->GetXaxis()->SetTitle("Centrality [%]"); }
+        else { g_std_devs[ihist]->GetXaxis()->SetTitle("#Sigma E_{T}^{Raw} [GeV]"); }
+        g_std_devs[ihist]->GetYaxis()->SetRangeUser(0.1, 12);
+        if ( ihist == 0 ) { g_std_devs[ihist]->Draw("ap"); }
+        else { g_std_devs[ihist]->Draw("p same"); }
+        g_std_devs[ihist]->Draw("p same");
+        leg2->AddEntry(g_std_devs[ihist], labs[ihist].c_str(), "p");
+        
+
+    }
+    leg2->Draw("same");
+    std::vector<std::string> tags = {sPHENIX_Tag, DataType_Tag};
+    double tx2=0.18;
+    double ty2=0.89;
+    for ( auto tag : tags ) {
+        tex->DrawLatex(tx2, ty2, tag.c_str());
+        ty2 -= 0.05;
+    }
+    c->SaveAs((outdir+"/cone_res_vs_sumq.png").c_str());
+    delete c;
+    TFile * fout = new TFile((outdir+"/probes.root").c_str(), "RECREATE");
+    for ( auto h2 : h2s ) {
+        h2->Write();
+    }
+    for ( unsigned ihist = 0; ihist < N_COURSE_X_BINS; ihist++ ) {
+       h1_raw_cone_et[ihist]->Scale(1.0/h1_raw_cone_et[ihist]->Integral());
+         h1_raw_cone_et[ihist]->Write();
+    }
+    for ( unsigned ihist = 0; ihist < h2s.size(); ihist++ ) {
+        g_std_devs[ihist]->SetName(labs[ihist].c_str());
+        g_std_devs[ihist]->Write();
+    }
+    fout->Close();
+    f->Close();
+
+    
+
+    return outdir+"/probes.root";
     
 }
 
