@@ -87,8 +87,8 @@ void Fun4All_PPG04_2024(
     const std::string & mode = "DATA",
     const std::string & prodTag = "2024p009",
     const int timeStamp = 54912,
-    const int nEvents = 10,
-    const int doRunMode = 1,
+    const int nEvents = 100,
+    const int doRunMode = 0,
     const std::string & outdir = "./",
     const std::string & dst_input_list0 = "dst_triggered_event_run2auau-00054912.list",
     const std::string & dst_input_list1 = "dst_calo_waveform.list",
@@ -144,7 +144,7 @@ void Fun4All_PPG04_2024(
     PPG04::doEventSelect = true;
     EventSelect::doZVrtxCut = true;
     EventSelect::doMinBiasCut = !PPG04::isMC;
-    EventSelect::doTowerChi2Cut = true;
+    EventSelect::doTowerChi2Cut = false;
     EventSelect::ZVrtxCutRange = {20,-20};
     
     // background subtraction
@@ -155,8 +155,8 @@ void Fun4All_PPG04_2024(
     // random cones
     PPG04::doRandomCones = !PPG04::doEmbedding;
     RandomCones::ConeRadius = 0.4;
-    RandomCones::ConeAbsEta = 1.1;
-    RandomCones::ConeMaskedThreshold = 0.05;
+    RandomCones::ConeAbsEta = 0.6;
+    RandomCones::ConeMaskedThreshold = 0.00;
 
     // probes
     PPG04::doJetProbe = !PPG04::doEmbedding;
@@ -175,7 +175,7 @@ void Fun4All_PPG04_2024(
     PPG04Output::doCemcOnlyWindow = PPG04::doCaloWindows && false;
 
     // calo spy
-    PPG04::doCaloSpy = PPG04::doCaloManip && false;
+    PPG04::doCaloSpy = false;
     PPG04CaloSpy::outfile = GetOutputFile( mode, prodTag, timeStamp, doRunMode, outdir, dst_input_list0 , "CALOSPY-");
     PPG04CaloSpy::Normalize = false;
     

@@ -85,6 +85,7 @@ int CaloTowerManip::InitRun( PHCompositeNode * topNode )
     }
     if ( m_do_randomize_towers ) {
       std::cout << PHWHERE << "Random seed = " << m_random_seed << std::endl;
+      std::cout << PHWHERE << "Using new algo" << std::endl;
     }
     if ( m_save_original_towers ) {
       std::cout << PHWHERE << "output node = " << m_output_node << std::endl;
@@ -116,7 +117,7 @@ int CaloTowerManip::process_event( PHCompositeNode * topNode )
 
   // copy original tower info to new tower info
   unsigned int ntowers = manip_towerinfo->size();
-  std::vector<unsigned int> tower_keys {};
+  // std::vector<unsigned int> tower_keys {};
   std::vector<unsigned int> unmasked_tower_keys {};
   std::vector<unsigned int> masked_tower_keys {};
   for (unsigned int channel = 0; channel < ntowers; channel++) {
@@ -148,10 +149,25 @@ int CaloTowerManip::process_event( PHCompositeNode * topNode )
 
   // apply manipulations to tower ids
   if ( m_do_randomize_towers ) { // only randomize unmasked towers
-    for (unsigned int iidx = unmasked_tower_keys.size() - 1; iidx > 0; --iidx) {
-      unsigned int jidx = static_cast<unsigned int>(m_random->Uniform(iidx + 1));
-      std::swap(unmasked_tower_keys[iidx], unmasked_tower_keys[jidx]);
+    std::vector<unsigned int> unmasked_tower_keys_copy = unmasked_tower_keys;
+    unsigned int ntowers_unmasked = unmasked_tower_keys.size();
+    unmasked_tower_keys.clear();
+    for (unsigned int i = 0; i < ntowers_unmasked; i++) {
+      unsigned int j = static_cast<unsigned int>( m_random->Uniform( unmasked_tower_keys_copy.size() ) );
+      unmasked_tower_keys.push_back(unmasked_tower_keys_copy.at(j));
+      // remove tower from list
+      unmasked_tower_keys_copy.erase(unmasked_tower_keys_copy.begin() + j);      
     }
+    unmasked_tower_keys_copy.clear();
+    unsigned int ntowers_now = unmasked_tower_keys.size();
+    if ( ntowers_now != ntowers_unmasked ) {
+      std::cout << PHWHERE << "Number of unmasked towers changed from " << ntowers_unmasked << " to " << ntowers_now << std::endl;
+      exit(1);
+    }
+    // for (unsigned int iidx = unmasked_tower_keys.size() - 1; iidx > 0; --iidx) {
+    //   unsigned int jidx = static_cast<unsigned int>(m_random->Uniform(iidx + 1));
+    //   std::swap(unmasked_tower_keys[iidx], unmasked_tower_keys[jidx]);
+    // }
   }
 
   unsigned int n_unasked_channels = 0;
