@@ -593,25 +593,33 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
 
   // sim jet
   if ( m_do_sim_jet ) {
-    if ( m_emb_jet_inputs.empty() ) {
-      std::cout << "PPG04AnaWriter::Init - ERROR - Must have embed jet inputs to get sim jet info" << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
+   
     m_tree->Branch("sim_jet_eta", &m_sim_jet_eta);
     m_tree->Branch("sim_jet_phi", &m_sim_jet_phi);
     m_tree->Branch("sim_jet_energy", &m_sim_jet_energy);
-    m_tree->Branch("sim_jet_area", &m_sim_jet_area);
-    m_tree->Branch("sim_jet_energy_cemc", &m_sim_jet_energy_cemc);
-    m_tree->Branch("sim_jet_energy_hcalin", &m_sim_jet_energy_hcalin);
-    m_tree->Branch("sim_jet_energy_hcalout", &m_sim_jet_energy_hcalout);
     m_tree->Branch("sim_jet_num_towers", &m_sim_jet_num_towers);
     m_tree->Branch("sim_jet_num_towers_cemc", &m_sim_jet_num_towers_cemc);
     m_tree->Branch("sim_jet_num_towers_hcalin", &m_sim_jet_num_towers_hcalin);
     m_tree->Branch("sim_jet_num_towers_hcalout", &m_sim_jet_num_towers_hcalout);
     if ( Verbosity() > 0 ) {
-      std::cout << "PPG04AnaWriter::Init - Sim jet top: " << m_sim_jet_node_top << std::endl;
+      std::cout << "PPG04AnaWriter::Init - Sim jet top: " << m_sim_jet_node << std::endl;
     }
 
+  }
+
+  // sim retower
+  if ( m_do_sim_retower_jet )
+  {
+    m_tree->Branch("sim_retower_jet_eta", &m_sim_retower_jet_eta);
+    m_tree->Branch("sim_retower_jet_phi", &m_sim_retower_jet_phi);
+    m_tree->Branch("sim_retower_jet_energy", &m_sim_retower_jet_energy);
+    m_tree->Branch("sim_retower_jet_num_towers", &m_sim_retower_jet_num_towers);
+    m_tree->Branch("sim_retower_jet_num_towers_cemc", &m_sim_retower_jet_num_towers_cemc);
+    m_tree->Branch("sim_retower_jet_num_towers_hcalin", &m_sim_retower_jet_num_towers_hcalin);
+    m_tree->Branch("sim_retower_jet_num_towers_hcalout", &m_sim_retower_jet_num_towers_hcalout);
+    if ( Verbosity() > 0 ) {
+      std::cout << "PPG04AnaWriter::Init - Sim retower jet top: " << m_sim_retower_jet_node << std::endl;
+    }
   }
 
   // truth jet
@@ -621,7 +629,7 @@ int PPG04AnaWriter::Init( PHCompositeNode * /*topNode*/ )
     m_tree->Branch("truth_jet_energy", &m_truth_jet_energy);
     m_tree->Branch("truth_jet_ncomp", &m_truth_jet_ncomp);
     if ( Verbosity() > 0 ) {
-      std::cout << "PPG04AnaWriter::Init - Truth jet node: " << m_truth_jet_node << "(" << m_truth_jet_node_top << ")" << std::endl;
+      std::cout << "PPG04AnaWriter::Init - Truth jet node: " << m_truth_jet_node << "(" << m_truth_jet_node << ")" << std::endl;
     }
   }
 
@@ -709,24 +717,14 @@ int PPG04AnaWriter::process_event( PHCompositeNode *topNode )
   }
 
   if ( m_do_sim_jet ) {
-    auto se = Fun4AllServer::instance();
-    auto simTop = se->topNode(m_sim_jet_node_top);  
-    if ( !simTop ) {
-      std::cout << PHWHERE << "Sim jet top node " << m_sim_jet_node_top << " not found." << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    // m_gvtx->process_event(simTop);
-    GetEmbJetInfo(simTop, JetMODE::SIM);
+    GetEmbJetInfo(topNode, JetMODE::SIM);
+  }
+  if ( m_do_sim_retower_jet ) {
+    GetEmbJetInfo(topNode, JetMODE::SIM_RE);
   }
 
   if ( m_do_truth_jet ) {
-    auto se = Fun4AllServer::instance();
-    auto truthNode = se->topNode(m_truth_jet_node_top);
-    if ( !truthNode ) {
-      std::cout << PHWHERE << "Truth jet top node " << m_truth_jet_node_top << " not found." << std::endl;
-      return Fun4AllReturnCodes::ABORTRUN;
-    }
-    GetEmbJetInfo(truthNode, JetMODE::TRUTH);
+    GetEmbJetInfo(topNode, JetMODE::TRUTH);
   }
 
   m_tree->Fill();
@@ -929,14 +927,20 @@ int PPG04AnaWriter::ResetEvent( PHCompositeNode * /*topNode*/ )
   m_sim_jet_eta.clear();
   m_sim_jet_phi.clear();
   m_sim_jet_energy.clear();
-  m_sim_jet_area.clear();
-  m_sim_jet_energy_cemc.clear();
-  m_sim_jet_energy_hcalin.clear();
-  m_sim_jet_energy_hcalout.clear();
   m_sim_jet_num_towers.clear();
   m_sim_jet_num_towers_cemc.clear();
   m_sim_jet_num_towers_hcalin.clear();
   m_sim_jet_num_towers_hcalout.clear();
+
+  // sim retower jets
+  m_sim_retower_jet_eta.clear();
+  m_sim_retower_jet_phi.clear();
+  m_sim_retower_jet_energy.clear();
+  m_sim_retower_jet_num_towers.clear();
+  m_sim_retower_jet_num_towers_cemc.clear();
+  m_sim_retower_jet_num_towers_hcalin.clear();
+  m_sim_retower_jet_num_towers_hcalout.clear();
+  
 
   // truth jets
   m_truth_jet_eta.clear();
@@ -1389,7 +1393,7 @@ int PPG04AnaWriter::GetCaloCemcWindowInfo( PHCompositeNode *topNode )
 int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
 {
   std::vector<Jet*> particles{};
-  if ( mode == JetMODE::EMB || mode == JetMODE::SIM ) {
+  if ( mode == JetMODE::EMB  ) {
     if ( m_emb_jet_inputs.size() == 0 ) {
       std::cout << PHWHERE << " No input nodes for embedding jets" << std::endl;
       return Fun4AllReturnCodes::ABORTEVENT;
@@ -1493,6 +1497,69 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
     PROBEJET->set_id(1);
     PROBEJET->insert_comp(Jet::SRC::JET_PROBE, 1, true);
     particles.push_back(PROBEJET);
+  } else if ( mode == JetMODE::SIM ){
+
+    auto simjets = findNode::getClass<JetContainerv1>(topNode, m_sim_jet_node);
+    if ( !simjets ) {
+      std::cout << PHWHERE << " Input node "<< m_sim_jet_node << " Node missing, doing nothing." << std::endl;
+      exit(-1); // fatal error
+    }
+
+    for ( auto jet : *simjets ) {
+      if ( std::abs(jet->get_eta()) > 0.7 ) { continue; }
+      if ( jet->get_pt() < 5.0 ) { continue; }
+      m_sim_jet_eta.push_back(jet->get_eta());
+      m_sim_jet_phi.push_back(jet->get_phi());
+      m_sim_jet_energy.push_back(jet->get_pt());
+      m_sim_jet_num_towers.push_back(jet->size_comp());
+
+      int n_emcal = 0, n_ohcal = 0, h_ohcal = 0;
+      n_emcal = jet->num_comp(Jet::SRC::CEMC_TOWERINFO);
+      n_ohcal = jet->num_comp(Jet::SRC::HCALOUT_TOWERINFO);
+      h_ohcal = jet->num_comp(Jet::SRC::HCALIN_TOWERINFO);
+      m_sim_jet_num_towers_cemc.push_back(n_emcal);
+      m_sim_jet_num_towers_hcalin.push_back(h_ohcal);
+      m_sim_jet_num_towers_hcalout.push_back(n_ohcal);
+    }
+
+    particles.clear();
+
+    if ( Verbosity() > 2 ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Sim jets " << m_sim_jet_node << " found " << m_sim_jet_eta.size() << " jets" << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
+
+  } else if ( mode == JetMODE::SIM_RE ){
+
+    auto simjets = findNode::getClass<JetContainerv1>(topNode, m_sim_retower_jet_node);
+    if ( !simjets ) {
+      std::cout << PHWHERE << " Input node "<< m_sim_retower_jet_node << " Node missing, doing nothing." << std::endl;
+      exit(-1); // fatal error
+    }
+
+    for ( auto jet : *simjets ) {
+      if ( std::abs(jet->get_eta()) > 0.7 ) { continue; }
+      if ( jet->get_pt() < 5.0 ) { continue; }
+      m_sim_retower_jet_eta.push_back(jet->get_eta());
+      m_sim_retower_jet_phi.push_back(jet->get_phi());
+      m_sim_retower_jet_energy.push_back(jet->get_pt());
+      m_sim_retower_jet_num_towers.push_back(jet->size_comp());
+      int n_emcal = 0, n_ohcal = 0, h_ohcal = 0;
+      n_emcal = jet->num_comp(Jet::SRC::CEMC_TOWERINFO_RETOWER);
+      n_ohcal = jet->num_comp(Jet::SRC::HCALOUT_TOWERINFO);
+      h_ohcal = jet->num_comp(Jet::SRC::HCALIN_TOWERINFO);
+      m_sim_retower_jet_num_towers_cemc.push_back(n_emcal);
+      m_sim_retower_jet_num_towers_hcalin.push_back(h_ohcal);
+      m_sim_retower_jet_num_towers_hcalout.push_back(n_ohcal);
+    }
+
+    particles.clear();
+
+    if ( Verbosity() > 2 ) {
+      std::cout << "PPG04AnaWriter::GetEmbJetInfo - Sim sub1 jets " << m_sim_retower_jet_node << " found " << m_sim_retower_jet_eta.size() << " jets" << std::endl;
+    }
+    return Fun4AllReturnCodes::EVENT_OK;
+    
   } else {
     std::cout << PHWHERE << " Unknown mode " << mode << std::endl;
     return Fun4AllReturnCodes::ABORTEVENT;
@@ -1594,18 +1661,6 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
       m_emb_jet_num_towers_cemc.push_back(n_towers_cemc);
       m_emb_jet_num_towers_hcalin.push_back(n_towers_hcalin);
       m_emb_jet_num_towers_hcalout.push_back(n_towers_hcalout);
-    } else if ( mode == JetMODE::SIM ) {
-      m_sim_jet_eta.push_back(eta);
-      m_sim_jet_phi.push_back(phi);
-      m_sim_jet_energy.push_back(tpt);
-      m_sim_jet_area.push_back(area);
-      m_sim_jet_energy_cemc.push_back(pt_cemc);
-      m_sim_jet_energy_hcalin.push_back(pt_hcalin);
-      m_sim_jet_energy_hcalout.push_back(pt_hcalout);
-      m_sim_jet_num_towers.push_back(n_towers_cemc + n_towers_hcalin + n_towers_hcalout);
-      m_sim_jet_num_towers_cemc.push_back(n_towers_cemc);
-      m_sim_jet_num_towers_hcalin.push_back(n_towers_hcalin);
-      m_sim_jet_num_towers_hcalout.push_back(n_towers_hcalout);
     } else if ( mode == JetMODE::EMB_SUB1 ) {    
       m_emb_jet_sub1_eta.push_back(eta);
       m_emb_jet_sub1_phi.push_back(phi);

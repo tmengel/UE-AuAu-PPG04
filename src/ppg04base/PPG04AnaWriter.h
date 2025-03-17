@@ -97,17 +97,21 @@ class PPG04AnaWriter : public SubsysReco
     m_emb_jet_sub1_inputs = jet_inputs;
   }
 
-  void do_sim_jet(const std::string & sim_node_top ) {
+  void do_sim_jet(const std::string & sim_node ) {
     m_do_sim_jet = true;
-    m_sim_jet_node_top = sim_node_top;
+    m_sim_jet_node = sim_node;
   }
 
-  void do_truth_jet( const std::string & truth_node , const std::string & truth_node_top ) {
-    m_do_truth_jet = true;
+  void do_sim_retower_jet(const std::string & sim_node ) {
+    m_do_sim_retower_jet = true;
+    m_sim_retower_jet_node = sim_node;
+  }
+
+  void do_truth_jet( const bool b, const std::string & truth_node ) {
+    m_do_truth_jet = b;
     m_truth_jet_node = truth_node;
-    m_truth_jet_node_top = truth_node_top;
-  } 
-  
+  }
+
 
  private:
     
@@ -324,24 +328,29 @@ class PPG04AnaWriter : public SubsysReco
 
   // sim jets
   bool m_do_sim_jet { false };
-  // GlobalVertexReco * m_gvtx { nullptr };
-  std::string m_sim_jet_node_top { "" };
+  std::string m_sim_jet_node { "" };
   std::vector< float > m_sim_jet_eta {};
   std::vector< float > m_sim_jet_phi {};
   std::vector< float > m_sim_jet_energy {};
-  std::vector< float > m_sim_jet_area {};
-  std::vector< float > m_sim_jet_energy_cemc {};
-  std::vector< float > m_sim_jet_energy_hcalin {};
-  std::vector< float > m_sim_jet_energy_hcalout {};
   std::vector< int > m_sim_jet_num_towers {};
   std::vector< int > m_sim_jet_num_towers_cemc {};
   std::vector< int > m_sim_jet_num_towers_hcalin {};
   std::vector< int > m_sim_jet_num_towers_hcalout {};
 
+  // sim jets
+  bool m_do_sim_retower_jet { false };
+  std::string m_sim_retower_jet_node { "" };
+  std::vector< float > m_sim_retower_jet_eta {};
+  std::vector< float > m_sim_retower_jet_phi {};
+  std::vector< float > m_sim_retower_jet_energy {};
+  std::vector< int > m_sim_retower_jet_num_towers {};
+  std::vector< int > m_sim_retower_jet_num_towers_cemc {};
+  std::vector< int > m_sim_retower_jet_num_towers_hcalin {};
+  std::vector< int > m_sim_retower_jet_num_towers_hcalout {};
+
   // truth jets
   bool m_do_truth_jet { false };
   std::string m_truth_jet_node { "" };
-  std::string m_truth_jet_node_top { "" };
   std::vector< float > m_truth_jet_eta {};
   std::vector< float > m_truth_jet_phi {};
   std::vector< float > m_truth_jet_energy {};
@@ -360,9 +369,10 @@ class PPG04AnaWriter : public SubsysReco
     EMB = 0,
     EMB_SUB1 = 1,
     SIM = 2,
-    TRUTH = 3,
-    PROBE = 4,
-    PROBE_SUB1 = 5
+    SIM_RE = 3,
+    TRUTH = 4,
+    PROBE = 5,
+    PROBE_SUB1 = 6
   };
   int GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode = EMB );
 
