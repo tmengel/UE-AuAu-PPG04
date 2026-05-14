@@ -30,7 +30,8 @@ float MAX_SUM_Q = 2200;
 
 const float V2_VALUES[] = {2.32, 3.39, 4.76, 6.18, 7.03, 7.4, 7.44, 7.23, 6.96};
 const float V3_VALUES[] = {1.43, 1.63, 1.82, 1.94, 2.02, 2.03, 1.96, 1.79, 2};
-const float X_CENT_BINS[]= {0, 5, 10, 20, 30, 40, 50, 60, 70, 80};
+// const float X_CENT_BINS[]= {0, 5, 10, 20, 30, 40, 50, 60, 70, 80};
+const float X_CENT_BINS[]= {0, 20, 40, 60, 80, 100};
 const int N_X_CENT_BINS = sizeof(X_CENT_BINS)/sizeof(X_CENT_BINS[0]) - 1;
 float MAX_X_CENT = X_CENT_BINS[N_X_CENT_BINS];
 
@@ -55,7 +56,7 @@ void SetBins()
     for ( int i = 0; i < N_DET_BINS+1; ++i ) { DET_BINS[i] = -MAX_DET + i*2*MAX_DET/N_DET_BINS; }
 }
 
-const float AREA_CONE = TMath::Pi()*0.4*0.4;
+const float AREA_CONE = TMath::Pi()*0.2*0.2;
 const float AREA_TOWER_CEMC = (2.0*TMath::Pi()/256.0)*(2.2/96.0);
 const float AREA_HCAL_TOWER = (2.0*TMath::Pi()/64.0)*(2.2/24.0);
 const float N_CEMC_TOWERS = 256*94;
@@ -81,6 +82,7 @@ void ConfigureOutputDirs(std::string input_file_base, std::string plotting_dir =
 std::string ProcessTTree(const std::string & input_file, const std::string & prefix);
 
 void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist,  const std::string & pois_hist);
+void MakeSigmaPlotRX(const std::string & basic_hist, const std::string & rand_hist,  const std::string & pois_hist);
 
 float PoissonEq(const float sigma_et, const float avg_et, const float avg_n,  const float v2 = 0 , const float v3 = 0)
 {
@@ -505,11 +507,12 @@ void Pois()
     gStyle->SetOptTitle(0);
     gStyle->SetPalette(kRainBow);
 
-    const std::string & input_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_basic.root";
-    const std::string & random_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_random.root";
-
+    // const std::string & input_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_basic.root";
+    // const std::string & random_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_random.root";
+    const std::string & input_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/APRIL15_R02/basic_r02.root";
+    const std::string & random_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/APRIL15_R02/random_r02.root";
    
-    DataType_Tag = "Au+Au 200 GeV";
+    DataType_Tag = "Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}";
 
     // get base name of input file
     std::string input_file_base = input_file;
@@ -523,18 +526,21 @@ void Pois()
     }
 
     
-    ConfigureOutputDirs("RandomCones");
+    ConfigureOutputDirs("RandomCones", "auaujets/");
+    // output_dir = MakeGetDir("plots-preliminary/");
+
     std::cout << "RandomCone plots: " << plot_plots << std::endl;
 
     SetBins();
     
-    // std::string basic_hist = ProcessTTree(input_file, "basic");
-    // std::string rand_hist = ProcessTTree(random_file, "random");
+    std::string basic_hist = ProcessTTree(input_file, "basic");
+    std::string rand_hist = ProcessTTree(random_file, "random");
     // std::string pois_hist = CalcPois(input_file);
     std::string pois_hist = "/sphenix/user/tmengel/UE-AuAu-PPG04/offline/plots/RandomCones/poisson.root";
-    std::string basic_hist ="/sphenix/user/tmengel/UE-AuAu-PPG04/offline/plots/RandomCones/basic/cones.root";
-    std::string rand_hist = "/sphenix/user/tmengel/UE-AuAu-PPG04/offline/plots/RandomCones/random/cones.root";
+    // std::string basic_hist ="/sphenix/user/tmengel/UE-AuAu-PPG04/offline/preliminary/RandomCones/basic/cones.root";
+    // std::string rand_hist = "/sphenix/user/tmengel/UE-AuAu-PPG04/offline/preliminary/RandomCones/random/cones.root";
     MakeSigmaPlot(basic_hist, rand_hist, pois_hist);
+    // MakeSigmaPlotRX(basic_hist, rand_hist, pois_hist);
     gSystem->Exit(0);
   
    
@@ -837,6 +843,7 @@ std::string ProcessTTree(const std::string & input_file, const std::string & pre
 
         leg->Draw("same");
     } 
+    c->SaveAs((outdir+"/cone_res_vs_x_slices.pdf").c_str());
     c->SaveAs((outdir+"/cone_res_vs_x_slices.png").c_str());
 
     delete c;
@@ -943,6 +950,7 @@ std::string ProcessTTree(const std::string & input_file, const std::string & pre
         }
         std::cout << "done with slice " << ibin << std::endl;
 
+        c->SaveAs((outdir+"/cone_res_vs_x_slice_"+std::to_string(ibin)+".pdf").c_str());
         c->SaveAs((outdir+"/cone_res_vs_x_slice_"+std::to_string(ibin)+".png").c_str());
         leg->Clear();
         delete c;
@@ -983,6 +991,7 @@ std::string ProcessTTree(const std::string & input_file, const std::string & pre
         tex->DrawLatex(tx2, ty2, tag.c_str());
         ty2 -= 0.05;
     }
+    c->SaveAs((outdir+"/cone_res_vs_x.pdf").c_str());
     c->SaveAs((outdir+"/cone_res_vs_x.png").c_str());
     delete c;
     TFile * fout = new TFile((outdir+"/cones.root").c_str(), "RECREATE");
@@ -1098,7 +1107,8 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
     int markers[] = {kFullCircle, kFullSquare, kFullTriangleUp};
     float markersize = 1.7;
     int markers_rand[] = {kOpenCircle, kOpenSquare, kOpenTriangleUp};
-    std::vector<std::string> labs = {"Area", "Multiplicity", "Iterative"};
+    std::vector<std::string> labs = {"Area Method", "Multiplicity Method", "Iterative Method"};
+    std::vector<std::string> labs_file = {"Area", "Multiplicity", "Iterative"};
 
     int linestyles_poission[] = {1, 2, 10};
     int linewidth_poission = 3;
@@ -1113,7 +1123,7 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
     float xmin = -1, xmax = 80;
     float ymin = 0, ymax = 7;
     std::string xlabel = "Centrality [%]";
-    std::string ylabel = "#sigma(#delta E_{T}) [GeV]";
+    std::string ylabel = "#sigma(#delta E_{T}^{Raw}) [GeV]";
     for ( int i = 0; i < graphs_basic.size(); ++i ) {
         graphs_basic[i]->SetLineColor(colors[i]);
         graphs_basic[i]->SetMarkerColor(colors[i]);
@@ -1176,10 +1186,521 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
         leg->AddEntry(graphs_rand[i], "Randomized #eta,#phi", "p");
     } 
     leg->Draw("same");
+    c->SaveAs((outdir+"/pois_debug.pdf").c_str());
     c->SaveAs((outdir+"/pois_debug.png").c_str());
     delete c;
     delete leg;
 
+
+
+    for ( int i = 0; i < graphs_poission.size(); ++i ) {
+        graphs_poission[i]->SetLineColor(colors_poission[i]);
+        graphs_poission[i]->SetLineStyle(linestyles_poission[i]);
+        graphs_poission[i]->SetLineWidth(linewidth_poission);
+        graphs_poission[i]->GetXaxis()->SetTitle(xlabel.c_str());
+        graphs_poission[i]->GetYaxis()->SetTitle(ylabel.c_str());
+    }
+    
+    for ( int i = 0; i < graphs_basic.size(); ++i ) {
+        
+        // tx = 0.18;
+        // ty = 0.3;
+
+        // c = new TCanvas("c", "c", 800, 800);
+        // gPad->SetLeftMargin(0.15);
+        // gPad->SetRightMargin(0.05);
+        // gPad->SetBottomMargin(0.15);
+        // gPad->SetTopMargin(0.05);
+
+        // leg = new TLegend(0.38,0.8,0.89,0.91);
+        // leg->SetBorderSize(0);
+        // leg->SetFillStyle(0);
+        // leg->SetNColumns(1);
+
+        // leg2 = new TLegend(0.43,0.64,0.89,0.79);
+        // leg2->SetBorderSize(0);
+        // leg2->SetFillStyle(0);
+        // leg2->SetNColumns(1);
+        
+        // graphs_basic[i]->GetYaxis()->SetRangeUser(0,6.1);
+        // graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
+        // graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}^{Raw}) [GeV]");
+        // graphs_basic[i]->Draw("AP");
+        // graphs_rand[i]->Draw("Psame");
+        // leg->AddEntry(graphs_basic[i],"Random Cones", "p");
+        // leg->AddEntry(graphs_rand[i], "Randomized #eta,#phi", "p");
+        // g_poission_basic->Draw("Lsame");
+        // g_poission_v2_basic->Draw("Lsame");
+        // g_poission_v3_basic->Draw("Lsame");
+        // leg2->AddEntry(g_poission_basic, "#sigma_{P}", "l");
+        // leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2})", "l");
+        // leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2}+v_{3})", "l");
+
+        // leg->Draw("same");
+        // leg2->Draw("same");
+        // for ( auto tag : tags ) {
+        //     tex->DrawLatex(tx, ty, tag.c_str());
+        //     ty -= 0.05;
+        // }
+        // tex->DrawLatex(tx, ty, labs[i].c_str());
+
+        tx = 0.55;
+        ty = 0.88;
+        c = new TCanvas("c", "c", 800, 800);
+        gPad->SetLeftMargin(0.15);
+        gPad->SetRightMargin(0.05);
+        gPad->SetBottomMargin(0.15);
+        gPad->SetTopMargin(0.05);
+        leg = new TLegend(0.18,0.18,0.4,0.33);
+        leg->SetBorderSize(0);
+        leg->SetFillStyle(0);
+        leg->SetNColumns(1);
+        leg->SetColumnSeparation(0.001);
+        
+        
+        // leg2 = new TLegend(0.5,0.62,0.89,0.78);
+        leg2 = new TLegend(0.18,0.34,0.4,0.5);
+        leg2->SetBorderSize(0);
+        leg2->SetFillStyle(0);
+        leg2->SetNColumns(1);
+        std::vector<std::string> labs_poission = {"#sigma_{P}", "#sigma_{P}+#sigma_{NS}(v_{2})", "#sigma_{P}+#sigma_{NS}(v_{2})+#sigma_{NS}(v_{3})"};
+        graphs_basic[i]->GetYaxis()->SetRangeUser(0,6.1);
+        graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
+        graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}^{Raw}) [GeV]");
+        graphs_basic[i]->Draw("APe");
+        graphs_rand[i]->Draw("Pesame");
+        leg->AddEntry(graphs_basic[i], "Basic Cones", "p");
+        leg->AddEntry(graphs_rand[i], "Randomized #kern[-0.5]{#eta#phi}", "p");
+
+        g_poission_basic->Draw("Lsame");
+        g_poission_v2_basic->Draw("Lsame");
+        g_poission_v3_basic->Draw("Lsame");
+        leg2->AddEntry(g_poission_basic, "#sigma_{P}", "l");
+        leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#kern[0.05]{#oplus}#kern[0.05]{#sigma_{NS}(v_{2})}", "l");
+        leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#kern[0.05]{#oplus}#kern[0.05]{#sigma_{NS}(v_{2} + v_{3})}", "l");
+    
+        leg->Draw("same");
+        leg2->Draw("same");
+    
+        tex->DrawLatex(tx-0.1, ty, sPHENIX_Tag.c_str());
+        tex->DrawLatex(tx-0.1, ty-0.06, DataType_Tag.c_str());
+        tex->DrawLatex(tx-0.1, ty-0.12, Form("#it{%s}", labs[i].c_str()));
+        // tex->SetTextSize(0.035);
+        // tex->DrawLatex(tx-0.1, ty-0.16, "#it{Open Points: Randomized#kern[0.05]{#eta#phi}}");
+        // tex->DrawLatex(tx-0.1, ty-0.12, "#it{Closed Points: Basic Cones}");
+        // c->SaveAs((outdir+"/sigma_et_vs_centrality.pdf").c_str());
+        // delete c;
+        // delete leg2;
+        // delete leg;
+        // delete tex;
+    
+
+        c->SaveAs((outdir+"/sigma_et_vs_centrality_"+labs_file[i]+".pdf").c_str());
+        c->SaveAs((outdir+"/sigma_et_vs_centrality_"+labs_file[i]+".png").c_str());
+        delete c;
+        delete leg;
+        delete leg2;
+    }
+    
+    tx = 0.55;
+    ty = 0.88;
+    c = new TCanvas("c", "c", 800, 800);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetRightMargin(0.05);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetTopMargin(0.05);
+    leg = new TLegend(0.18,0.18,0.4,0.33);
+    leg->SetBorderSize(0);
+    leg->SetFillStyle(0);
+    leg->SetNColumns(2);
+    leg->SetColumnSeparation(0.001);
+    
+    
+    // leg2 = new TLegend(0.5,0.62,0.89,0.78);
+    leg2 = new TLegend(0.18,0.34,0.4,0.5);
+    leg2->SetBorderSize(0);
+    leg2->SetFillStyle(0);
+    leg2->SetNColumns(1);
+    std::vector<std::string> labs_poission = {"#sigma_{P}", "#sigma_{P}+#sigma_{NS}(v_{2})", "#sigma_{P}+#sigma_{NS}(v_{2})+#sigma_{NS}(v_{3})"};
+    for ( int i = 0; i < graphs_basic.size(); ++i ) {
+        if ( i == 0 ) {
+            graphs_basic[i]->GetYaxis()->SetRangeUser(0.0, 3.1);
+            graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}^{Raw}) [GeV]");
+            // graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
+            graphs_basic[i]->Draw("AP");
+            graphs_rand[i]->Draw("Psame");
+            leg->AddEntry(graphs_basic[i], " ", "P");
+            leg->AddEntry(graphs_rand[i], Form(" %s", labs[i].c_str()), "P");
+        } else {
+            graphs_basic[i]->Draw("Psame");
+            graphs_rand[i]->Draw("Psame");
+            leg->AddEntry(graphs_basic[i], " ", "P");
+            leg->AddEntry(graphs_rand[i], Form(" %s", labs[i].c_str()), "P");
+        }
+    }
+    // g_poission_basic->Draw("Lsame");
+    // g_poission_v2_basic->Draw("Lsame");
+    // g_poission_v3_basic->Draw("Lsame");
+    leg2->AddEntry(g_poission_basic, "#sigma_{P}", "l");
+    // leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#kern[0.05]{#oplus}#kern[0.05]{#sigma_{NS}(v_{2})}", "l");
+    // leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#kern[0.05]{#oplus}#kern[0.05]{#sigma_{NS}(v_{2} + v_{3})}", "l");
+
+    leg->Draw("same");
+    leg2->Draw("same");
+
+    tex->DrawLatex(tx-0.1, ty, sPHENIX_Tag.c_str());
+    tex->DrawLatex(tx-0.1, ty-0.06, DataType_Tag.c_str());
+    tex->SetTextSize(0.035);
+    tex->DrawLatex(tx-0.1, ty-0.16, "#it{Open Points: Randomized#kern[0.05]{#eta#phi}}");
+    tex->DrawLatex(tx-0.1, ty-0.12, "#it{Closed Points: Basic Cones}");
+    c->SaveAs((outdir+"/sigma_et_vs_centrality.pdf").c_str());
+    c->SaveAs((outdir+"/sigma_et_vs_centrality.png").c_str());
+    delete c;
+    delete leg2;
+    delete leg;
+    delete tex;
+
+
+    TGraphErrors* g_poission_v2_over_basic = (TGraphErrors*)g_poission_basic->Clone("g_poission_v2_over_basic");
+    TGraphErrors* g_poission_v3_over_basic = (TGraphErrors*)g_poission_basic->Clone("g_poission_v3_over_basic");
+    TGraphErrors * g_poission_basic_over_basic = (TGraphErrors*)g_poission_basic->Clone("g_poission_basic_over_basic");
+    TGraphErrors * g_area_basic_div = (TGraphErrors*)g_area_basic->Clone("g_area_basic_div");
+    TGraphErrors * g_mult_basic_div = (TGraphErrors*)g_mult_basic->Clone("g_mult_basic_div");
+    TGraphErrors * g_sub1_basic_div = (TGraphErrors*)g_sub1_basic->Clone("g_sub1_basic_div");
+    TGraphErrors * g_area_rand_div = (TGraphErrors*)g_area_rand->Clone("g_area_rand_div");
+    TGraphErrors * g_mult_rand_div = (TGraphErrors*)g_mult_rand->Clone("g_mult_rand_div");
+    TGraphErrors * g_sub1_rand_div = (TGraphErrors*)g_sub1_rand->Clone("g_sub1_rand_div");
+    for ( int i = 0; i < g_poission_basic->GetN(); ++i ) {
+        double x = g_poission_basic->GetX()[i];
+        
+        double y = g_poission_basic->GetY()[i];
+        double y_ab = g_area_basic->GetY()[i];
+        double y_mb = g_mult_basic->GetY()[i];
+        double y_sb = g_sub1_basic->GetY()[i];
+        double y_ar = g_area_rand->GetY()[i];
+        double y_mr = g_mult_rand->GetY()[i];
+        double y_sr = g_sub1_rand->GetY()[i];
+        double y_v2 = g_poission_v2_basic->GetY()[i];
+        double y_v3 = g_poission_v3_basic->GetY()[i];
+        g_poission_v2_over_basic->SetPoint(i, x, y_v2/y);
+        g_poission_v3_over_basic->SetPoint(i, x, y_v3/y);
+        g_poission_basic_over_basic->SetPoint(i, x, y/y);
+        g_poission_v2_over_basic->SetPointError(i, 0, 0);
+        g_poission_v3_over_basic->SetPointError(i, 0, 0);
+        g_poission_basic_over_basic->SetPointError(i, 0, 0);
+        g_area_basic_div->SetPoint(i, x, y_ab/y);
+        g_mult_basic_div->SetPoint(i, x, y_mb/y);
+        g_sub1_basic_div->SetPoint(i, x, y_sb/y);
+        g_area_rand_div->SetPoint(i, x, y_ar/y);
+        g_mult_rand_div->SetPoint(i, x, y_mr/y);
+        g_sub1_rand_div->SetPoint(i, x, y_sr/y);
+        g_area_basic_div->SetPointError(i, 0, TMath::Abs(y_ab/y) * g_area_basic->GetErrorY(i)); // relative error
+        g_mult_basic_div->SetPointError(i, 0, TMath::Abs(y_mb/y) * g_mult_basic->GetErrorY(i)); // relative error
+        g_sub1_basic_div->SetPointError(i, 0, TMath::Abs(y_sb/y) * g_sub1_basic->GetErrorY(i)); // relative error
+        g_area_rand_div->SetPointError(i, 0, TMath::Abs(y_ar/y) * g_area_rand->GetErrorY(i)); // relative error
+        g_mult_rand_div->SetPointError(i, 0, TMath::Abs(y_mr/y) * g_mult_rand->GetErrorY(i)); // relative error
+        g_sub1_rand_div->SetPointError(i, 0, TMath::Abs(y_sr/y) * g_sub1_rand->GetErrorY(i)); // relative error
+
+    }
+
+    graphs_poission = {g_poission_basic_over_basic, g_poission_v2_over_basic, g_poission_v3_over_basic};
+    graphs_rand = {g_area_rand_div, g_mult_rand_div, g_sub1_rand_div};
+    graphs_basic = {g_area_basic_div, g_mult_basic_div, g_sub1_basic_div};
+
+    for ( int i = 0; i < graphs_poission.size(); ++i ) {
+        graphs_poission[i]->SetLineColor(colors_poission[i]);
+        graphs_poission[i]->SetLineStyle(linestyles_poission[i]);
+        graphs_poission[i]->SetLineWidth(linewidth_poission);
+        graphs_poission[i]->GetXaxis()->SetTitle(xlabel.c_str());
+        graphs_poission[i]->GetYaxis()->SetTitle(ylabel.c_str());
+    }
+
+    c = new TCanvas("c", "c", 800, 800);
+    leg = new TLegend(0.18,0.18,0.3,0.3);
+    leg->SetBorderSize(0);
+    leg->SetFillStyle(0);
+    leg->SetNColumns(2);
+    leg->SetTextSize(0.035);
+    leg->SetColumnSeparation(0.01);
+    
+    
+    leg2 = new TLegend(0.5,0.18,0.7,0.3);
+    leg2->SetBorderSize(0);
+    leg2->SetFillStyle(0);
+    leg2->SetNColumns(1);
+    leg2->SetTextSize(0.035);
+    tex = new TLatex();
+    tex->SetNDC();
+    tex->SetTextFont(42);
+
+    gPad->SetLeftMargin(0.15);
+    gPad->SetRightMargin(0.05);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetTopMargin(0.05);
+    for ( int i = 0; i < graphs_basic.size(); ++i ) {
+
+
+
+        if ( i == 0 ) {
+            graphs_basic[i]->GetYaxis()->SetRangeUser(0.75 ,1.55);
+            graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}) / #sigma_{P}");
+            graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
+            graphs_basic[i]->Draw("AP");
+            graphs_rand[i]->Draw("Psame");
+            g_poission_basic_over_basic->Draw("Lsame");
+            g_poission_v2_over_basic->Draw("Lsame");
+            g_poission_v3_over_basic->Draw("Lsame");
+            leg->AddEntry(graphs_basic[i], " ", "P");
+            leg->AddEntry(graphs_rand[i], Form(" %s", labs[i].c_str()), "P");
+
+
+        } else {
+            graphs_basic[i]->Draw("Pesame");
+            graphs_rand[i]->Draw("Pesame");
+            leg->AddEntry(graphs_basic[i], " ", "P");
+            leg->AddEntry(graphs_rand[i], Form(" %s", labs[i].c_str()), "P");
+        }
+       
+    }
+
+    // leg2->AddEntry(g_poission_basic_over_basic, "#sigma_{P}/#sigma_{P}", "l");
+    leg2->AddEntry(g_poission_v2_over_basic, "#sigma_{P}#kern[0.05]{#oplus}#kern[0.05]{#sigma_{NS}(v_{2})}/#sigma_{P}", "l");
+    leg2->AddEntry(g_poission_v3_over_basic, "#sigma_{P}#kern[0.05]{#oplus}#kern[0.05]{#sigma_{NS}(v_{2} + v_{3})}/#sigma_{P}", "l");
+    leg->Draw("same");
+    leg2->Draw("same");
+
+    tex->DrawLatex(0.45, ty, sPHENIX_Tag.c_str());
+    tex->DrawLatex(0.45, ty-0.06, DataType_Tag.c_str());
+    tex->SetTextSize(0.035);
+    tex->DrawLatex(0.45, ty-0.16, "#it{Open Points: Randomized#kern[0.05]{#eta#phi}}");
+    tex->DrawLatex(0.45, ty-0.12, "#it{Closed Points: Basic Cones}");
+
+    c->SaveAs((outdir+"/sigma_et_vs_centrality_oversigma.pdf").c_str());
+    c->SaveAs((outdir+"/sigma_et_vs_centrality_oversigma.png").c_str());
+    delete c;
+    delete leg;
+    delete leg2;
+
+    fbasic->Close();
+    frand->Close();
+    fpois->Close();
+    return;
+
+}
+
+void MakeSigmaPlotRX(const std::string & basic_hist, const std::string & rand_hist, const std::string & pois_hist)
+{
+    std::string outdir = plot_plots;
+    TFile * fbasic = new TFile(basic_hist.c_str(), "READ");
+    if( !fbasic->IsOpen() || fbasic->IsZombie() ) { std::cout << "File " << basic_hist << " is zombie" << std::endl;  exit(1); }
+    TFile * frand = new TFile(rand_hist.c_str(), "READ");
+    if( !frand->IsOpen() || frand->IsZombie() ) { std::cout << "File " << rand_hist << " is zombie" << std::endl;  exit(1); }
+    std::cout << "Opened files " << basic_hist << " and " << rand_hist << std::endl;
+    TFile * fpois = new TFile(pois_hist.c_str(), "READ");
+    if( !fpois->IsOpen() || fpois->IsZombie() ) { std::cout << "File " << pois_hist << " is zombie" << std::endl;  exit(1); }
+
+    TGraphErrors * g_area_basic_x = (TGraphErrors*)fbasic->Get("Area");
+    TGraphErrors * g_mult_basic_x = (TGraphErrors*)fbasic->Get("Multiplicity");
+    TGraphErrors * g_sub1_basic_x = (TGraphErrors*)fbasic->Get("Iterative");
+    g_area_basic_x->SetName("g_area_basic");
+    g_mult_basic_x->SetName("g_mult_basic");
+    g_sub1_basic_x->SetName("g_sub1_basic");
+
+    if (!g_area_basic_x || !g_mult_basic_x || !g_sub1_basic_x) {
+        std::cout << "Error: One or more graphs not found in basic histogram file." << std::endl;
+        return;
+    }
+  
+    // reverse x axis
+    TGraphErrors * g_area_basic = (TGraphErrors*)g_area_basic_x->Clone("g_area_basic");
+    TGraphErrors * g_mult_basic = (TGraphErrors*)g_mult_basic_x->Clone("g_mult_basic");
+    TGraphErrors * g_sub1_basic = (TGraphErrors*)g_sub1_basic_x->Clone("g_sub1_basic");
+    for ( int i = 0; i < g_area_basic->GetN(); ++i ) {
+        double x = g_area_basic->GetX()[i];
+        double y = g_area_basic->GetY()[i];
+        double ex = g_area_basic->GetEX()[i];
+        double ey = g_area_basic->GetEY()[i];
+        g_area_basic->SetPoint(i, 80-x, y);
+        g_area_basic->SetPointError(i, ex, ey);
+    }
+    for ( int i = 0; i < g_mult_basic->GetN(); ++i ) {
+        double x = g_mult_basic->GetX()[i];
+        double y = g_mult_basic->GetY()[i];
+        double ex = g_mult_basic->GetEX()[i];
+        double ey = g_mult_basic->GetEY()[i];
+        g_mult_basic->SetPoint(i, 80-x, y);
+        g_mult_basic->SetPointError(i, ex, ey);
+    }
+    for ( int i = 0; i < g_sub1_basic->GetN(); ++i ) {
+        double x = g_sub1_basic->GetX()[i];
+        double y = g_sub1_basic->GetY()[i];
+        double ex = g_sub1_basic->GetEX()[i];
+        double ey = g_sub1_basic->GetEY()[i];
+        g_sub1_basic->SetPoint(i, 80-x, y);
+        g_sub1_basic->SetPointError(i, ex, ey);
+    }
+  
+
+    TGraphErrors * g_poission_basic_x = (TGraphErrors*)fpois->Get("g_poission_total");
+    TGraphErrors * g_poission_v2_basic_x = (TGraphErrors*)fpois->Get("g_poission_v2_star");
+    TGraphErrors * g_poission_v3_basic_x = (TGraphErrors*)fpois->Get("g_poission_v3_star");
+    
+    std::vector<TGraphErrors*> graphs_pois = {g_poission_basic_x, g_poission_v2_basic_x, g_poission_v3_basic_x};
+    int ig =0;
+    for ( auto g : graphs_pois ) {
+        if ( !g ) { std::cout << "Error: Graph not found in poission histogram file." << std::endl; return; }
+        g->SetLineColor(COLORS[ig]);
+        g->SetLineStyle(ig);
+        ig++;
+    }
+    
+    if (!g_poission_basic_x || !g_poission_v2_basic_x || !g_poission_v3_basic_x) {
+        std::cout << "Error: One or more graphs not found in basic histogram file." << std::endl;
+        return;
+    }
+
+    // reverse x axis
+    TGraphErrors * g_poission_basic = (TGraphErrors*)g_poission_basic_x->Clone("g_poission_basic");
+    TGraphErrors * g_poission_v2_basic = (TGraphErrors*)g_poission_v2_basic_x->Clone("g_poission_v2_basic");
+    TGraphErrors * g_poission_v3_basic = (TGraphErrors*)g_poission_v3_basic_x->Clone("g_poission_v3_basic");
+    for ( int i = 0; i < g_poission_basic->GetN(); ++i ) {
+        double x = g_poission_basic->GetX()[i];
+        double y = g_poission_basic->GetY()[i];
+        double ex = g_poission_basic->GetEX()[i];
+        double ey = g_poission_basic->GetEY()[i];
+        g_poission_basic->SetPoint(i, 80-x, y);
+        g_poission_basic->SetPointError(i, ex, ey);
+    }
+    for ( int i = 0; i < g_poission_v2_basic->GetN(); ++i ) {
+        double x = g_poission_v2_basic->GetX()[i];
+        double y = g_poission_v2_basic->GetY()[i];
+        double ex = g_poission_v2_basic->GetEX()[i];
+        double ey = g_poission_v2_basic->GetEY()[i];
+        g_poission_v2_basic->SetPoint(i, 80-x, y);
+        g_poission_v2_basic->SetPointError(i, ex, ey);
+    }
+    for ( int i = 0; i < g_poission_v3_basic->GetN(); ++i ) {
+        double x = g_poission_v3_basic->GetX()[i];
+        double y = g_poission_v3_basic->GetY()[i];
+        double ex = g_poission_v3_basic->GetEX()[i];
+        double ey = g_poission_v3_basic->GetEY()[i];
+        g_poission_v3_basic->SetPoint(i, 80-x, y);
+        g_poission_v3_basic->SetPointError(i, ex, ey);
+    }
+
+
+
+    TGraphErrors * g_area_rand_x = (TGraphErrors*)frand->Get("Area");
+    TGraphErrors * g_mult_rand_x = (TGraphErrors*)frand->Get("Multiplicity");
+    TGraphErrors * g_sub1_rand_x = (TGraphErrors*)frand->Get("Iterative");
+    if (!g_area_rand_x || !g_mult_rand_x || !g_sub1_rand_x) {
+        std::cout << "Error: One or more graphs not found in random histogram file." << std::endl;
+        return;
+    }
+
+    // reverse x axis
+    TGraphErrors * g_area_rand = (TGraphErrors*)g_area_rand_x->Clone("g_area_rand");
+    TGraphErrors * g_mult_rand = (TGraphErrors*)g_mult_rand_x->Clone("g_mult_rand");
+    TGraphErrors * g_sub1_rand = (TGraphErrors*)g_sub1_rand_x->Clone("g_sub1_rand");
+    for ( int i = 0; i < g_area_rand->GetN(); ++i ) {
+        double x = g_area_rand->GetX()[i];
+        double y = g_area_rand->GetY()[i];
+        double ex = g_area_rand->GetEX()[i];
+        double ey = g_area_rand->GetEY()[i];
+        g_area_rand->SetPoint(i, 80-x, y);
+        g_area_rand->SetPointError(i, ex, ey);
+    }
+    for ( int i = 0; i < g_mult_rand->GetN(); ++i ) {
+        double x = g_mult_rand->GetX()[i];
+        double y = g_mult_rand->GetY()[i];
+        double ex = g_mult_rand->GetEX()[i];
+        double ey = g_mult_rand->GetEY()[i];
+        g_mult_rand->SetPoint(i, 80-x, y);
+        g_mult_rand->SetPointError(i, ex, ey);
+    }
+    for ( int i = 0; i < g_sub1_rand->GetN(); ++i ) {
+        double x = g_sub1_rand->GetX()[i];
+        double y = g_sub1_rand->GetY()[i];
+        double ex = g_sub1_rand->GetEX()[i];
+        double ey = g_sub1_rand->GetEY()[i];
+        g_sub1_rand->SetPoint(i, 80-x, y);
+        g_sub1_rand->SetPointError(i, ex, ey);
+    }
+
+
+
+
+
+
+
+    
+    std::vector<std::string> tags = {sPHENIX_Tag, DataType_Tag};
+
+    TCanvas * c;
+    gStyle->SetOptStat(0);
+    gStyle->SetOptFit(0);
+    gStyle->SetOptTitle(0);
+
+    TLatex * tex = new TLatex();
+    tex->SetNDC();
+    tex->SetTextFont(42);
+
+    TLegend * leg;
+    TLegend * leg2;
+
+    int colors[] = {kRed, kAzure-2, kGreen+2};
+    int markers[] = {kFullCircle, kFullSquare, kFullTriangleUp};
+    float markersize = 1.7;
+    int markers_rand[] = {kOpenCircle, kOpenSquare, kOpenTriangleUp};
+    std::vector<std::string> labs = {"Area", "Multiplicity", "Iterative"};
+
+    int linestyles_poission[] = {1, 2, 10};
+    int linewidth_poission = 3;
+    int colors_poission[] = {kBlack, kBlack, kBlack};
+
+    double tx = 0.18;
+    double ty = 0.25;
+
+    std::vector<TGraphErrors*> graphs_basic = {g_area_basic, g_mult_basic, g_sub1_basic};
+    std::vector<TGraphErrors*> graphs_rand = {g_area_rand, g_mult_rand, g_sub1_rand};
+    std::vector<TGraphErrors*> graphs_poission = {g_poission_basic, g_poission_v2_basic, g_poission_v3_basic};
+    float xmin = -1, xmax = 80;
+    float ymin = 0, ymax = 7;
+    std::string xlabel = "Centrality [%]";
+    std::string ylabel = "#sigma(#delta E_{T}^{Raw}) [GeV]";
+    for ( int i = 0; i < graphs_basic.size(); ++i ) {
+        graphs_basic[i]->SetLineColor(colors[i]);
+        graphs_basic[i]->SetMarkerColor(colors[i]);
+        graphs_basic[i]->SetLineWidth(2);
+        graphs_basic[i]->SetMarkerStyle(markers[i]);
+        graphs_basic[i]->SetMarkerSize(markersize);
+        // graphs_basic[i]->SetMarkerFillStyle(0);
+        // graphs_basic[i]->SetMarkerColorAlpha(colors[i], 0.5);
+
+        for (int j = 0; j < graphs_basic[i]->GetN(); ++j) {
+            if ( graphs_basic[i]->GetY()[j] > ymax ) { ymax = graphs_basic[i]->GetY()[j]; }
+            // set xerr and yer to 0
+            graphs_basic[i]->SetPointError(j, 0, 0);
+        }
+        graphs_basic[i]->GetXaxis()->SetTitle(xlabel.c_str());
+        graphs_basic[i]->GetYaxis()->SetTitle(ylabel.c_str());
+        
+
+        graphs_rand[i]->SetLineColor(colors[i]);
+        graphs_rand[i]->SetMarkerColor(colors[i]);
+        graphs_rand[i]->SetMarkerStyle(markers_rand[i]);
+        graphs_rand[i]->SetMarkerSize(markersize);
+        for (int j = 0; j < graphs_rand[i]->GetN(); ++j) {
+
+            if ( graphs_rand[i]->GetY()[j] > ymax ) { ymax = graphs_rand[i]->GetY()[j]; }
+
+            // set xerr and yer to 0
+            graphs_rand[i]->SetPointError(j, 0, 0);
+        }
+        graphs_rand[i]->GetXaxis()->SetTitle(xlabel.c_str());
+        graphs_rand[i]->GetYaxis()->SetTitle(ylabel.c_str());     
+
+    }
 
 
     for ( int i = 0; i < graphs_poission.size(); ++i ) {
@@ -1211,8 +1732,9 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
         leg2->SetFillStyle(0);
         leg2->SetNColumns(1);
         
-        graphs_basic[i]->GetYaxis()->SetRangeUser(0.9,6.1);
+        graphs_basic[i]->GetYaxis()->SetRangeUser(0,6.1);
         graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
+        graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}^{Raw}) [GeV]");
         graphs_basic[i]->Draw("AP");
         graphs_rand[i]->Draw("Psame");
         leg->AddEntry(graphs_basic[i],"Random Cones", "p");
@@ -1221,8 +1743,8 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
         g_poission_v2_basic->Draw("Lsame");
         g_poission_v3_basic->Draw("Lsame");
         leg2->AddEntry(g_poission_basic, "#sigma_{P}", "l");
-        leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#oplus#sigma_{NP}(v_{2})", "l");
-        leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#oplus#sigma_{NP}(v_{2}+v_{3})", "l");
+        leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2})", "l");
+        leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2}+v_{3})", "l");
 
         leg->Draw("same");
         leg2->Draw("same");
@@ -1232,37 +1754,61 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
         }
         tex->DrawLatex(tx, ty, labs[i].c_str());
 
+        c->SaveAs((outdir+"/sigma_et_vs_centrality_"+labs[i]+".pdf").c_str());
         c->SaveAs((outdir+"/sigma_et_vs_centrality_"+labs[i]+".png").c_str());
         delete c;
         delete leg;
         delete leg2;
     }
     
-    tx = 0.49;
+    tx = 0.29;
     ty = 0.88;
     c = new TCanvas("c", "c", 800, 800);
     gPad->SetLeftMargin(0.15);
     gPad->SetRightMargin(0.05);
     gPad->SetBottomMargin(0.15);
     gPad->SetTopMargin(0.05);
-    leg = new TLegend(0.18,0.18,0.4,0.35);
+    leg = new TLegend(0.63,0.3,0.82,0.45);
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     leg->SetNColumns(2);
     leg->SetColumnSeparation(0.01);
     
     
-    leg2 = new TLegend(0.5,0.58,0.89,0.72);
+    leg2 = new TLegend(0.19,0.62,0.4,0.78);
     leg2->SetBorderSize(0);
     leg2->SetFillStyle(0);
     leg2->SetNColumns(1);
-    std::vector<std::string> labs_poission = {"#sigma_{P}", "#sigma_{P}+#sigma_{NP}(v_{2})", "#sigma_{P}+#sigma_{NP}(v_{2})+#sigma_{NP}(v_{3})"};
+    TH1D* h_dummy = new TH1D("h_dummy", "", graphs_basic[0]->GetN(), 0, 80);
+    
+    h_dummy->Fill(0);
+    std::vector<std::string> labs_poission = {"#sigma_{P}", "#sigma_{P}+#sigma_{NS}(v_{2})", "#sigma_{P}+#sigma_{NS}(v_{2})+#sigma_{NS}(v_{3})"};
     for ( int i = 0; i < graphs_basic.size(); ++i ) {
         if ( i == 0 ) {
-            graphs_basic[i]->GetYaxis()->SetRangeUser(0.9, 6.1);
-            graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T})");
-            graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
-            graphs_basic[i]->Draw("AP");
+            graphs_basic[i]->GetYaxis()->SetRangeUser(0.0, 6.9);
+            graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}^{Raw}) [GeV]");
+            graphs_basic[i]->GetXaxis()->SetRangeUser(0, 90);
+        
+            h_dummy->GetXaxis()->SetRangeUser(0, 82);
+            h_dummy->GetYaxis()->SetRangeUser(0.0, 6.1);
+            h_dummy->GetXaxis()->SetTitle(xlabel.c_str());
+            h_dummy->GetYaxis()->SetTitle(ylabel.c_str());
+            h_dummy->SetMarkerStyle(0);
+            h_dummy->SetMarkerSize(0);
+            h_dummy->SetMarkerColor(0);
+            h_dummy->SetLineColor(0);
+            h_dummy->SetLineWidth(0);
+            h_dummy->SetFillColor(0);
+            h_dummy->SetFillStyle(0);
+            // change x tick labels to reverse order
+            
+           
+            // h_dummy->Draw("RX ");
+            graphs_basic[i]->Draw("RXAP");
+
+            
+            // graphs_basic[i]->GetXaxis()->LabelsOption("v");            
+
             graphs_rand[i]->Draw("Psame");
             leg->AddEntry(graphs_basic[i], " ", "P");
             leg->AddEntry(graphs_rand[i], Form(" %s", labs[i].c_str()), "P");
@@ -1277,18 +1823,18 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
     g_poission_v2_basic->Draw("Lsame");
     g_poission_v3_basic->Draw("Lsame");
     leg2->AddEntry(g_poission_basic, "#sigma_{P}", "l");
-    leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#oplus#sigma_{NP}(v_{2})", "l");
-    leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#oplus#sigma_{NP}(v_{2}+v_{3})", "l");
+    leg2->AddEntry(g_poission_v2_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2})", "l");
+    leg2->AddEntry(g_poission_v3_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2} +v_{3})", "l");
 
     leg->Draw("same");
     leg2->Draw("same");
 
-    tex->DrawLatex(tx, ty, sPHENIX_Tag.c_str());
-    tex->DrawLatex(tx, ty-0.05, DataType_Tag.c_str());
+    tex->DrawLatex(tx-0.1, ty, sPHENIX_Tag.c_str());
+    tex->DrawLatex(tx-0.1, ty-0.06, DataType_Tag.c_str());
     tex->SetTextSize(0.035);
-    tex->DrawLatex(tx, ty-0.1, "#it{Open Points: Randomized#eta,#phi}");
-    tex->DrawLatex(tx, ty-0.15, "#it{Closed Points: Random Cones}");
-    c->SaveAs((outdir+"/sigma_et_vs_centrality.png").c_str());
+    tex->DrawLatex(0.45, ty-0.65, "#it{Open Points: Randomized#eta,#phi}");
+    tex->DrawLatex(0.45, ty-0.7, "#it{Closed Points: Random Cones}");
+    c->SaveAs((outdir+"/sigma_et_vs_centrality_rx.pdf").c_str());
     delete c;
     delete leg2;
     delete leg;
@@ -1349,7 +1895,7 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
     }
 
     c = new TCanvas("c", "c", 800, 800);
-    leg = new TLegend(0.18,0.78,0.3,0.91);
+    leg = new TLegend(0.18,0.18,0.3,0.32);
     leg->SetBorderSize(0);
     leg->SetFillStyle(0);
     leg->SetNColumns(2);
@@ -1376,7 +1922,7 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
             graphs_basic[i]->GetYaxis()->SetRangeUser(0.7, 1.7);
             graphs_basic[i]->GetYaxis()->SetTitle("#sigma(#delta E_{T}) / #sigma_{P}");
             graphs_basic[i]->GetXaxis()->SetRangeUser(xmin, xmax);
-            graphs_basic[i]->Draw("AP");
+            graphs_basic[i]->Draw("APRX");
             graphs_rand[i]->Draw("Psame");
             g_poission_basic_over_basic->Draw("Lsame");
             g_poission_v2_over_basic->Draw("Lsame");
@@ -1395,18 +1941,18 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
     }
 
     // leg2->AddEntry(g_poission_basic_over_basic, "#sigma_{P}/#sigma_{P}", "l");
-    leg2->AddEntry(g_poission_v2_over_basic, "#sigma_{P}#oplus#sigma_{NP}(v_{2})/#sigma_{P}", "l");
-    leg2->AddEntry(g_poission_v3_over_basic, "#sigma_{P}#oplus#sigma_{NP}(v_{2}+v_{3})/#sigma_{P}", "l");
+    leg2->AddEntry(g_poission_v2_over_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2})/#sigma_{P}", "l");
+    leg2->AddEntry(g_poission_v3_over_basic, "#sigma_{P}#oplus#sigma_{NS}(v_{2}+v_{3})/#sigma_{P}", "l");
     leg->Draw("same");
     leg2->Draw("same");
 
-    tex->DrawLatex(tx, ty, sPHENIX_Tag.c_str());
-    tex->DrawLatex(tx, ty-0.05, DataType_Tag.c_str());
+    tex->DrawLatex(0.18, ty, sPHENIX_Tag.c_str());
+    tex->DrawLatex(0.18, ty-0.06, DataType_Tag.c_str());
     tex->SetTextSize(0.035);
-    tex->DrawLatex(tx, ty-0.1, "#it{Open Points: Randomized#eta,#phi}");
-    tex->DrawLatex(tx, ty-0.15, "#it{Closed Points: Random Cones}");
+    tex->DrawLatex(0.18, ty-0.12, "#it{Open Points: Randomized#eta,#phi}");
+    tex->DrawLatex(0.18, ty-0.17, "#it{Closed Points: Random Cones}");
 
-    c->SaveAs((outdir+"/sigma_et_vs_centrality_oversigma.png").c_str());
+    c->SaveAs((outdir+"/sigma_et_vs_centrality_oversigma_rx.pdf").c_str());
     delete c;
     delete leg;
     delete leg2;
@@ -1417,5 +1963,4 @@ void MakeSigmaPlot(const std::string & basic_hist, const std::string & rand_hist
     return;
 
 }
-
 

@@ -56,13 +56,9 @@ void GetRunSegment( const std::string & f, int & run_number, int & run_segment )
     return;
 }
 
-void Fun4All_PPG04_2024_Pass2( 
-    const std::string & mode = "DATA",
-    const std::string & prodTag = "2024p009",
-    const int timeStamp = 54912,
-    const int nEvents = -1,
-    const int doRunMode = 0,
-    const std::string & outdir = "./",
+void Fun4All_PPG04_Embedded( 
+    const int nEvents = 10,
+    const std::string & outputfile = "dummy.root",
     const std::string & dst_input_list0 = "/sphenix/tg/tg01/jets/bkimelman/embed_Feb24_2025/DST_TRUTH_JET_PPG04_EMBED_Jet30-2024p009-00054912-000480.root",
     const std::string & dst_input_list1 = "/sphenix/tg/tg01/jets/bkimelman/embed_Feb24_2025/DST_GLOBAL_PPG04_EMBED_Jet30-2024p009-00054912-000480.root",
     const std::string & dst_input_list2 = "/sphenix/tg/tg01/jets/bkimelman/embed_Feb24_2025/DST_CALO_PPG04_EMBED_Jet30-2024p009-00054912-000480.root"
@@ -72,11 +68,13 @@ void Fun4All_PPG04_2024_Pass2(
     std::cout << "Starting Fun4All_PPG04" << std::endl;
     
     // Enable
-    Enable::VERBOSITY = 1;
+    Enable::VERBOSITY = 0;
 
     // CDB
-    CDB::global_tag = prodTag;
+    const int timeStamp = 54912;
     CDB::timestamp = static_cast<uint64_t>( timeStamp );
+    CDB::global_tag = "2024p009";
+
     int run_number, run_segment;
     GetRunSegment( dst_input_list0, run_number, run_segment );
     std::cout << "Run number: " << run_number << std::endl;
@@ -84,36 +82,42 @@ void Fun4All_PPG04_2024_Pass2(
 
     //  PPG04
     PPG04::VERBOSITY = 1;
-    PPG04::isDATA = ( mode == "DATA" );
+    PPG04::isDATA = true;
     PPG04::isMC = !PPG04::isDATA;
 
     // random cones
-    PPG04::doRandomCones = true;
+    PPG04::doRandomCones = false;
 
     // probes
-    PPG04::doJetProbe = true;
+    PPG04::doJetProbe = false;
 
     // calo windows
-    PPG04::doCaloWindows = true;
+    PPG04::doCaloWindows = false;
+
+    // embedding
+    PPG04::doEmbedding = true;
+    Embdedding::doTruth = true;
+    Embdedding::doSimRetower = true;
+    Embdedding::doSim = true;
+
+
+    // background subtraction
+    PPG04::doIterBackground = true;
+    PPG04::doAreaRho = true;
+    PPG04::doMultRho = true;
    
     // // analysis writer
-    // PPG04::doAnaWriter = true; 
-    // PPG04Output::outfile = "dummy.root";
-    // PPG04Output::writeMBD = true;
-    // PPG04Output::writeZVtx = true;
-    // PPG04Output::writeCent = true;
-    // PPG04Output::writeIterBackground = true;
-    // PPG04Output::doFullWindow = PPG04::doCaloWindows && true;
+    PPG04::doAnaWriter = true; 
+    PPG04Output::outfile = outputfile;
+    PPG04Output::writeMBD = true;
+    PPG04Output::writeZVtx = true;
+    PPG04Output::writeCent = true;
+
+
   
     // Set up F4A
     auto se = Fun4AllServer::instance();
     se -> Verbosity( Enable::VERBOSITY );
-    // auto sync = new SyncReco();
-    // se -> registerSubsystem(sync);
-    // auto head = new HeadReco();
-    // se -> registerSubsystem(head);
-    // auto flag = new FlagHandler();
-    // se -> registerSubsystem(flag);
     std::vector<std::string> dst_files = { dst_input_list0 , dst_input_list1, dst_input_list2 };
 
     // set up recoConsts
@@ -133,7 +137,10 @@ void Fun4All_PPG04_2024_Pass2(
 
     }
 
-    se -> run( 10 );
+    InitPPG04();
+    RunPPG04();
+
+    se -> run( nEvents );
 
     se -> End();   
     std::cout << "Done!" << std::endl;

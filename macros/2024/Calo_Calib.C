@@ -8,9 +8,6 @@
 #include <caloreco/RawClusterPositionCorrection.h>
 
 
-#include <caloembedding/caloTowerEmbed.h>
-
-
 #include <ffamodules/CDBInterface.h>
 #include <ffamodules/FlagHandler.h>
 #include <phool/recoConsts.h>
@@ -24,13 +21,9 @@
 R__LOAD_LIBRARY( libcalo_reco.so )
 R__LOAD_LIBRARY( libffamodules.so )
 R__LOAD_LIBRARY( libfun4allutils.so )
-R__LOAD_LIBRARY( libCaloEmbedding.so )
 
 namespace CALOCALIB {
-  bool EMBED = false;
   bool isData = false;
-  std::string EmbdeddingSrcTOP = "TOPData";
-  std::string EmbdeddingTgtTOP = "TOP";   
 }
 
 void Process_Calo_Calib()
@@ -53,10 +46,12 @@ void Process_Calo_Calib()
   if (rc->get_uint64Flag("TIMESTAMP") > data_run_2024_ths)
   {
     is2024 = true;
+    std::cout << "Calo Calib uses runnumber " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
+    std::cout << "Calo Calib is 2024 run" << std::endl;
   }
   std::cout << "Calo Calib uses runnumber " << rc->get_uint64Flag("TIMESTAMP") << std::endl;
 
-    // Input geometry node
+  // Input geometry node
   std::cout << "Adding Geometry file" << std::endl;
   Fun4AllInputManager *ingeo = new Fun4AllRunNodeInputManager("DST_GEO");
   std::string geoLocation = CDBInterface::instance()->getUrl("calo_geo");
@@ -70,8 +65,10 @@ void Process_Calo_Calib()
   CaloTowerStatus *statusEMC = new CaloTowerStatus("CEMCSTATUS");
   statusEMC->set_detector_type(CaloTowerDefs::CEMC);
   statusEMC->set_time_cut(1);
+  
   // MC Towers Status
   if(isSim) {
+    
     // Uses threshold of 50% for towers be considered frequently bad.
     std::string calibName_hotMap = "CEMC_hotTowers_status";
     /* Systematic options (to be used as needed). */
@@ -97,14 +94,14 @@ void Process_Calo_Calib()
   se->registerSubsystem(statusHCALOUT);
 
   if ( is2024 ) {
-      ////////////////////
-  // Calibrate towers
+    ////////////////////
+    // Calibrate towers
     std::cout << "Calibrating EMCal" << std::endl;
     CaloTowerCalib *calibEMC = new CaloTowerCalib("CEMCCALIB");
     calibEMC->set_detector_type(CaloTowerDefs::CEMC);
     calibEMC->setFieldName("Femc_datadriven_qm1_correction");
+    // calibEMC->set_directURL("/sphenix/user/egm2153/calib_study/emcal_calib_year1/ana450_2024p009_54912_54921/local_calib_copy_iter15.root");
     calibEMC->set_directURL("/sphenix/user/egm2153/calib_study/emcal_calib_year1/54908_54921/local_calib_copy_iter33.root");
-     // calibEMC->set_directURL("/sphenix/user/egm2153/calib_study/emcal_calib_year1/ana450_2024p009_54912_54921/local_calib_copy_iter15.root");
     if ( CALOCALIB::isData ) { 
       calibEMC->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/CEMC_ZSCrossCalib_ana450_2024p009_54912.root");
     }
@@ -113,7 +110,9 @@ void Process_Calo_Calib()
     std::cout << "Calibrating OHcal" << std::endl;
     CaloTowerCalib *calibOHCal = new CaloTowerCalib("HCALOUT");
     calibOHCal->set_detector_type(CaloTowerDefs::HCALOUT);
-    calibOHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ohcal_cdb_tsc_cos_calib.root");
+    // calibOHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ohcal_cdb_tsc_cos_calib.root");
+    // calibOHCal->set_directURL("/sphenix/user/egm2153/calib_study/detdeta/runsimana0/calib_files/HCALOUT_calib_ADC_to_ETower_old_mc_digi_scale_54912.root");
+    calibOHCal->set_directURL("/sphenix/user/egm2153/calib_study/detdeta/runsimana0/calib_files/HCALOUT_calib_ADC_to_ETower_old_mc_digi_scale_54912.root");
     if ( CALOCALIB::isData ) { 
       calibOHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALOUT_ZSCrossCalib_ana450_2024p009_54912.root");
     }
@@ -122,10 +121,11 @@ void Process_Calo_Calib()
     std::cout << "Calibrating IHcal" << std::endl;
     CaloTowerCalib *calibIHCal = new CaloTowerCalib("HCALIN");
     calibIHCal->set_detector_type(CaloTowerDefs::HCALIN);
+    calibIHCal->set_directURL("/sphenix/user/egm2153/calib_study/detdeta/runsimana0/calib_files/HCALIN_calib_ADC_to_ETower_old_mc_digi_scale_54912.root");
     if ( CALOCALIB::isData ) { 
-      calibIHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ihcal_cdb_tsc_cos_calib.root");
+      calibIHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALIN_ZSCrossCalib_ana450_2024p009_54912.root");
+      // calibIHCal->set_directURL("/sphenix/u/bseidlitz/work/macros/calibrations/calo/hcal_towerSlope_y2/tsc_cos_comb/AuAuOutput/ihcal_cdb_tsc_cos_calib.root");
     }
-    calibIHCal->set_directURL_ZScrosscalib("/sphenix/user/egm2153/calib_study/detdeta/analysis/Run2024/HCALIN_ZSCrossCalib_ana450_2024p009_54912.root");
     se->registerSubsystem(calibIHCal);
 
   
@@ -159,37 +159,7 @@ void Process_Calo_Calib()
   ClusterBuilder->set_UseTowerInfo(1);  // to use towerinfo objects rather than old RawTower
   se->registerSubsystem(ClusterBuilder);
 
-
-  if ( CALOCALIB::EMBED ) {
-  
-    caloTowerEmbed * embedder_CEMC = new caloTowerEmbed("embedder_CEMC");
-    embedder_CEMC->set_detector_type(CaloTowerDefs::CEMC);
-    embedder_CEMC->set_inputTop( CALOCALIB::EmbdeddingSrcTOP );
-    embedder_CEMC->set_targetTop( CALOCALIB::EmbdeddingTgtTOP );
-    embedder_CEMC->set_propgateStatus(true);
-    se->registerSubsystem(embedder_CEMC);
-    
-    caloTowerEmbed * embedder_IHCAL = new caloTowerEmbed("embedder_IHCAL");
-    embedder_IHCAL->set_detector_type(CaloTowerDefs::HCALIN);
-    embedder_IHCAL->set_inputTop( CALOCALIB::EmbdeddingSrcTOP );
-    embedder_IHCAL->set_targetTop( CALOCALIB::EmbdeddingTgtTOP );
-    embedder_IHCAL->set_propgateStatus(true);
-    se->registerSubsystem(embedder_IHCAL);
-
-    caloTowerEmbed * embedder_OHCAL = new caloTowerEmbed("embedder_OHCal");
-    embedder_OHCAL->set_detector_type(CaloTowerDefs::HCALOUT);
-    embedder_OHCAL->set_inputTop( CALOCALIB::EmbdeddingSrcTOP );
-    embedder_OHCAL->set_targetTop( CALOCALIB::EmbdeddingTgtTOP );
-    embedder_OHCAL->set_propgateStatus(true);
-    se->registerSubsystem(embedder_OHCAL);
-  
-  }
-
-  // currently NOT included!
-  // std::cout << "Applying Position Dependent Correction" << std::endl;
-  // RawClusterPositionCorrection *clusterCorrection = new RawClusterPositionCorrection("CEMC");
-  // clusterCorrection->set_UseTowerInfo(1);  // to use towerinfo objects rather than old RawTower
-  // se->registerSubsystem(clusterCorrection);
+ 
 }
 
 #endif

@@ -1,0 +1,32 @@
+\begin{table}[!tb]
+ \begin{center}
+     \renewcommand{\arraystretch}{1.5}
+  \begin{tabular}{|c|c|c|c|c|}
+   \hline
+   & $\mu$ [ \GeV] & $\sigma$ [ \GeV] & $\sigma^\text{l.h.s.}$ [ \GeV]  & $\mu^\text{l.h.s.}$ [ \GeV] \\
+    \hline \hline 
+   \multicolumn{5}{|c|}{\textbf{Area Method}} \\
+    \hline 
+    Basic Cone & 1.75 $\pm$ 0.03 & 5.80 $\pm$ 0.02 & 5.15 $\pm$ 0.06 & 0.83 $\pm$ 0.12 \\
+    Randomized $\eta\phi$ & 2.06 $\pm$ 0.02 & 4.77 $\pm$ 0.02 & 4.38 $\pm$ 0.05 & 1.48 $\pm$ 0.08 \\
+    High-Energy Probe & 0.60 $\pm$ 0.03 & 6.08 $\pm$ 0.02 & &  \\
+    Embedded Jet & 2.69 $\pm$ 0.04 & 5.34 $\pm$ 0.03 & &  \\
+    \hline
+    \multicolumn{5}{|c|}{\textbf{Multiplicity Method}} \\
+    \hline 
+    Basic Cone & 0.71 $\pm$ 0.03 & 5.76 $\pm$ 0.02 & 5.19 $\pm$ 0.05 & -0.06 $\pm$ 0.09 \\
+    Randomized $\eta\phi$ & 1.10 $\pm$ 0.02 & 4.97 $\pm$ 0.02 & 4.68 $\pm$ 0.05 & 0.69 $\pm$ 0.10 \\
+    High-Energy Probe & 0.58 $\pm$ 0.03 & 5.66 $\pm$ 0.02 & &  \\
+    Embedded Jet & 5.47 $\pm$ 0.04 & 5.47 $\pm$ 0.03 & &  \\
+    \hline 
+    \multicolumn{5}{|c|}{\textbf{Iterative Method}} \\
+    \hline 
+    Basic Cone & 0.46 $\pm$ 0.03 & 5.52 $\pm$ 0.02 & 4.83 $\pm$ 0.05 & -0.48 $\pm$ 0.10 \\
+    Randomized $\eta\phi$ & 0.31 $\pm$ 0.02 & 4.77 $\pm$ 0.02 & 4.29 $\pm$ 0.05 & -0.34 $\pm$ 0.08 \\
+    High-Energy Probe & 0.60 $\pm$ 0.03 & 5.47 $\pm$ 0.02 & &  \\
+    Embedded Jet & 2.93 $\pm$ 0.04 & 5.22 $\pm$ 0.03 & &  \\
+    \hline 
+  \end{tabular}
+  \caption{Width and mean of underlying event distributions $\delta E_T$ and negative $\delta E_T$ extrapolated via Gaussian fit in 0--5\% cental \AuAu events for both types of random cones and embedded high-$E_T$ probes subtracted with each background subtraction method.}\label{tab:musigmadeltaet}
+ \end{center}
+\end{table}

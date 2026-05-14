@@ -1,8 +1,7 @@
 #include <GlobalVariables.C>
 
-//#include "Calo_Calib.C"
-//#include "Calo_Fitting.C"
 #include "PPG04_Calo_Calib.C"
+
 #include "PPG04.C"
 
 #include <ffamodules/CDBInterface.h>
@@ -11,6 +10,7 @@
 #include <phool/PHRandomSeed.h>
 
 #include <phparameter/PHParameterUtils.h>
+
 // coresoftware headers
 #include <ffamodules/FlagHandler.h>
 #include <ffamodules/HeadReco.h>
@@ -47,13 +47,9 @@ R__LOAD_LIBRARY( libg4centrality.so )
 R__LOAD_LIBRARY( libcentrality.so )
 R__LOAD_LIBRARY( libglobalvertex.so )
 R__LOAD_LIBRARY( libg4vertex.so )
-
 R__LOAD_LIBRARY( libzdcinfo.so )
 
-namespace OUTPUTMANAGER
-{
-  set<string> outfiles;
-}
+
 
 void GetRunSegment( const std::string & filelist, int & run_number, int & run_segment ) 
 {
@@ -108,6 +104,7 @@ std::string GetOutputFile( const std::string & mode,
         oss << prefix; 
         if ( prefix.back( ) != '_' ) { oss << "_"; }
     }
+    
     oss << mode << "_";
     if ( doRunMode == 1 ) { oss << "RandEtaPhi_"; }
     oss << "prod." << prodBuild << "_cdb." << prodTag << "_build." << buildTag << "-"
@@ -117,7 +114,7 @@ std::string GetOutputFile( const std::string & mode,
     return outfile;
 }
 
-void Fun4All_PPG04_2024( 
+void Fun4All_PPG04_2024Prod( 
   const std::string & mode = "DATA",
     const std::string & prodTag = "2024p009",
     const int timeStamp = 54912,
@@ -141,21 +138,14 @@ void Fun4All_PPG04_2024(
     CDB::global_tag = prodTag;
     CDB::timestamp = static_cast<uint64_t>( timeStamp );
 
+
+
     //  PPG04
     PPG04::VERBOSITY = 0;
     PPG04::isDATA = ( mode == "DATA" );
     PPG04::isMC = !PPG04::isDATA;
     PPG04::isTRUTHJETS = ( mode == "PYTHIA" );
 
-      // calo calib settings
-      CALOCALIB::isData = PPG04::isDATA;
-      CALOCALIB::is2024 = true;
-      CALOCALIB::cemc_software_zs = 60;
-      CALOCALIB::ohcal_software_zs = 30;
-      CALOCALIB::ihcal_software_zs = 30;
-      CALOCALIB::CalibVersion = 1;
-
-      
     PPG04::PPG04RandomSeed = PHRandomSeed();
 
     // calo manipulation
@@ -165,6 +155,14 @@ void Fun4All_PPG04_2024(
 
     // event selection
     PPG04::doEventSelect = true;
+
+    CALOCALIB::isData = PPG04::isDATA;
+    CALOCALIB::is2024 = true;
+    CALOCALIB::cemc_software_zs = 60;
+    CALOCALIB::ohcal_software_zs = 30;
+    CALOCALIB::ihcal_software_zs = 30;
+    CALOCALIB::CalibVersion = 0;
+
     EventSelect::doZVrtxCut = true;
     EventSelect::doMinBiasCut = PPG04::isDATA;
     EventSelect::doTowerChi2Cut = false;
@@ -222,22 +220,12 @@ void Fun4All_PPG04_2024(
     
     }
 
-   
-    // if ( PPG04::isDATA ) {
-    //     CALOFITTING::cemc_software_zs = 60;
-    //     CALOFITTING::ohcal_software_zs = 30;
-    //     CALOFITTING::ihcal_software_zs = 30;
-    //     Process_Calo_Fitting();
-    // }
 
     if ( PPG04::isDATA ) {
         FitTowers();
     }
-
     CalibTowers();
 
-
-    // Process_Calo_Calib();
 
     if ( PPG04::isDATA ) {
      

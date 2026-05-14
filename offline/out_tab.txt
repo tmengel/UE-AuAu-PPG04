@@ -1,0 +1,273 @@
+
+Processing PPG04_Plots.C...
+sPhenixStyle: Applying nominal settings.
+sPhenixStyle: ROOT6 mode
+PPG04 plots starting.
+Output directory: plots/MAR23_OLD
+Input files: 
+/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_basic.root
+/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_random.root
+/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/FEB7/feb7_embed.root
+LoadNevents: Number of events: 1025145
+ProcessConeTree: OVERRIDE is false, returning plots/MAR23_OLD/rootfiles/basic.root
+ProcessConeTree: OVERRIDE is false, returning plots/MAR23_OLD/rootfiles/random.root
+ProcessProbeTree: OVERRIDE is false, returning plots/MAR23_OLD/rootfiles/probe.root
+PPG04 creating plots finished.
+m = 89.519, s = 7.97807
+chi2/ndf = -nan
+m = 104.175, s = 9.10488
+chi2/ndf = -nan
+m = 101.695, s = 9.28343
+chi2/ndf = -nan
+m = 20.7941, s = 3.23894
+chi2/ndf = -nan
+m = 25.3285, s = 2.86002
+chi2/ndf = -nan
+m = 16.3246, s = 2.3416
+chi2/ndf = -nan
+m = 8.78162, s = 1.85486
+chi2/ndf = -nan
+m = 4.56021, s = 1.52287
+chi2/ndf = -nan
+m = 1.8704, s = 1.11027
+chi2/ndf = -nan
+m = 60.5877, s = 5.53088
+m = 56.8396, s = 5.18873
+m = 40.763, s = 4.5913
+m = 33.3844, s = 3.7631
+m = 22.7785, s = 3.01851
+m = 20, s = 2.82843
+m = 20, s = 2.82843
+m = 20, s = 2.82843
+m = 20, s = 2.82843
+m = 51.4391, s = 4.69572
+m = 46.4167, s = 4.30891
+m = 35.4425, s = 3.76524
+m = 24.0896, s = 3.10416
+m = 20, s = 2.82843
+m = 120, s = 10.9545
+m = 20, s = 2.82843
+m = 21.7973, s = 2.96558
+m = 20, s = 2.82843
+\begin{table}[hbt!]
+ \begin{center}
+  \begin{tabular}{|c|c|c|c|c|}
+   \hline
+   & $\sigma$ & $\mu$ & $\sigma^{l.h.s.}$ & $\mu^{l.h.s.}$ \\ 
+   \hline \hline
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 0-5\%}} \\
+   \hline
+   Area & 1.751 $\pm$ 0.0278 & 5.803 $\pm$ 0.01966 & 5.152 $\pm$ 0.06237 & 0.8312 $\pm$ 0.1193 \\
+   Randomized & 2.058 $\pm$ 0.02292 & 4.774 $\pm$ 0.01621 & 4.378 $\pm$ 0.04748 & 1.481 $\pm$ 0.08317 \\
+   Probe & 0.5957 $\pm$ 0.03238 & 6.078 $\pm$ 0.02289 & &  \\
+   Embeded & 2.687 $\pm$ 0.04405 & 5.34 $\pm$ 0.03115 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 5-10\%}} \\
+   \hline
+   Area & 1.537 $\pm$ 0.02326 & 5.469 $\pm$ 0.01645 & 4.775 $\pm$ 0.04872 & 0.5716 $\pm$ 0.08849 \\
+   Randomized & 1.736 $\pm$ 0.01843 & 4.321 $\pm$ 0.01303 & 3.978 $\pm$ 0.04286 & 1.281 $\pm$ 0.08293 \\
+   Probe & 0.584 $\pm$ 0.02678 & 5.676 $\pm$ 0.01894 & &  \\
+   Embeded & 2.328 $\pm$ 0.03725 & 5.14 $\pm$ 0.02634 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 10-20\%}} \\
+   \hline
+   Area & 1.356 $\pm$ 0.01473 & 4.895 $\pm$ 0.01041 & 4.113 $\pm$ 0.02739 & 0.3236 $\pm$ 0.0465 \\
+   Randomized & 1.419 $\pm$ 0.01108 & 3.674 $\pm$ 0.007834 & 3.317 $\pm$ 0.02349 & 0.9463 $\pm$ 0.04038 \\
+   Probe & 0.6289 $\pm$ 0.01669 & 5.016 $\pm$ 0.0118 & &  \\
+   Embeded & 1.839 $\pm$ 0.02387 & 4.675 $\pm$ 0.01688 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 20-30\%}} \\
+   \hline
+   Area & 1.085 $\pm$ 0.01224 & 4.064 $\pm$ 0.008655 & 3.446 $\pm$ 0.0212 & 0.3433 $\pm$ 0.03415 \\
+   Randomized & 1.069 $\pm$ 0.009006 & 2.985 $\pm$ 0.006368 & 2.591 $\pm$ 0.01931 & 0.5435 $\pm$ 0.03613 \\
+   Probe & 0.6056 $\pm$ 0.01366 & 4.12 $\pm$ 0.009662 & &  \\
+   Embeded & 1.094 $\pm$ 0.02053 & 4.07 $\pm$ 0.01452 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 30-40\%}} \\
+   \hline
+   Area & 0.8414 $\pm$ 0.009943 & 3.3 $\pm$ 0.007031 & 2.681 $\pm$ 0.01844 & 0.1031 $\pm$ 0.03137 \\
+   Randomized & 0.7922 $\pm$ 0.007391 & 2.447 $\pm$ 0.005226 & 2.116 $\pm$ 0.01485 & 0.4001 $\pm$ 0.02493 \\
+   Probe & 0.5452 $\pm$ 0.01095 & 3.313 $\pm$ 0.00774 & &  \\
+   Embeded & 0.3736 $\pm$ 0.01708 & 3.395 $\pm$ 0.01207 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 40-50\%}} \\
+   \hline
+   Area & 0.6285 $\pm$ 0.00778 & 2.58 $\pm$ 0.005501 & 2.11 $\pm$ 0.01262 & 0.1105 $\pm$ 0.02034 \\
+   Randomized & 0.5616 $\pm$ 0.006026 & 1.995 $\pm$ 0.004261 & 1.716 $\pm$ 0.01015 & 0.2395 $\pm$ 0.01544 \\
+   Probe & 0.4414 $\pm$ 0.008529 & 2.586 $\pm$ 0.006031 & &  \\
+   Embeded & -0.158 $\pm$ 0.01368 & 2.74 $\pm$ 0.009674 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 50-60\%}} \\
+   \hline
+   Area & 0.4538 $\pm$ 0.006077 & 2.018 $\pm$ 0.004297 & 1.624 $\pm$ 0.0148 & 0.03243 $\pm$ 0.02842 \\
+   Randomized & 0.3766 $\pm$ 0.004907 & 1.626 $\pm$ 0.00347 & 1.39 $\pm$ 0.01159 & 0.09727 $\pm$ 0.02359 \\
+   Probe & 0.3362 $\pm$ 0.006558 & 1.998 $\pm$ 0.004638 & &  \\
+   Embeded & -0.6073 $\pm$ 0.01061 & 2.138 $\pm$ 0.007505 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 60-70\%}} \\
+   \hline
+   Area & 0.2296 $\pm$ 0.004777 & 1.586 $\pm$ 0.003378 & 1.271 $\pm$ 0.01048 & -0.1272 $\pm$ 0.01788 \\
+   Randomized & 0.2138 $\pm$ 0.00409 & 1.355 $\pm$ 0.002892 & 1.195 $\pm$ 0.009955 & 0.03495 $\pm$ 0.01889 \\
+   Probe & 0.1684 $\pm$ 0.005138 & 1.571 $\pm$ 0.003633 & &  \\
+   Embeded & -0.8675 $\pm$ 0.008457 & 1.706 $\pm$ 0.00598 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 70-80\%}} \\
+   \hline
+   Area & -0.1356 $\pm$ 0.00393 & 1.307 $\pm$ 0.002779 & 1.131 $\pm$ 0.007166 & -0.3141 $\pm$ 0.0111 \\
+   Randomized & -0.05442 $\pm$ 0.003572 & 1.185 $\pm$ 0.002526 & 1.091 $\pm$ 0.007328 & -0.1522 $\pm$ 0.01258 \\
+   Probe & -0.1548 $\pm$ 0.004219 & 1.293 $\pm$ 0.002984 & &  \\
+   Embeded & -1.039 $\pm$ 0.00678 & 1.362 $\pm$ 0.004794 & &  \\
+   \hline
+  \end{tabular}
+ \end{center}
+\end{table}
+
+\begin{table}[hbt!]
+ \begin{center}
+  \begin{tabular}{|c|c|c|c|c|}
+   \hline
+   & $\sigma$ & $\mu$ & $\sigma^{l.h.s.}$ & $\mu^{l.h.s.}$ \\ 
+   \hline \hline
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 0-5\%}} \\
+   \hline
+   Multiplicity & 0.7052 $\pm$ 0.0276 & 5.761 $\pm$ 0.01951 & 5.186 $\pm$ 0.05283 & -0.0575 $\pm$ 0.09373 \\
+   Randomized & 1.101 $\pm$ 0.02385 & 4.967 $\pm$ 0.01686 & 4.683 $\pm$ 0.05189 & 0.687 $\pm$ 0.0968 \\
+   Probe & 0.5794 $\pm$ 0.03015 & 5.661 $\pm$ 0.02132 & &  \\
+   Embeded & 5.465 $\pm$ 0.03763 & 5.473 $\pm$ 0.02661 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 5-10\%}} \\
+   \hline
+   Multiplicity & 0.6455 $\pm$ 0.02314 & 5.441 $\pm$ 0.01636 & 4.753 $\pm$ 0.04852 & -0.3399 $\pm$ 0.08996 \\
+   Randomized & 0.9173 $\pm$ 0.01913 & 4.487 $\pm$ 0.01353 & 4.226 $\pm$ 0.03777 & 0.5724 $\pm$ 0.06925 \\
+   Probe & 0.5672 $\pm$ 0.02529 & 5.359 $\pm$ 0.01788 & &  \\
+   Embeded & 4.832 $\pm$ 0.03294 & 5.331 $\pm$ 0.02329 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 10-20\%}} \\
+   \hline
+   Multiplicity & 0.6785 $\pm$ 0.01463 & 4.862 $\pm$ 0.01034 & 4.106 $\pm$ 0.0286 & -0.3407 $\pm$ 0.05146 \\
+   Randomized & 0.7874 $\pm$ 0.01138 & 3.776 $\pm$ 0.00805 & 3.486 $\pm$ 0.02047 & 0.4123 $\pm$ 0.03418 \\
+   Probe & 0.6146 $\pm$ 0.01597 & 4.799 $\pm$ 0.01129 & &  \\
+   Embeded & 3.766 $\pm$ 0.02137 & 4.778 $\pm$ 0.01511 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 20-30\%}} \\
+   \hline
+   Multiplicity & 0.6775 $\pm$ 0.0122 & 4.05 $\pm$ 0.008625 & 3.449 $\pm$ 0.02352 & -0.0593 $\pm$ 0.04252 \\
+   Randomized & 0.648 $\pm$ 0.009173 & 3.04 $\pm$ 0.006486 & 2.693 $\pm$ 0.01878 & 0.1987 $\pm$ 0.03233 \\
+   Probe & 0.5996 $\pm$ 0.01328 & 4.003 $\pm$ 0.009389 & &  \\
+   Embeded & 2.615 $\pm$ 0.01898 & 4.165 $\pm$ 0.01342 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 30-40\%}} \\
+   \hline
+   Multiplicity & 0.6699 $\pm$ 0.009914 & 3.29 $\pm$ 0.00701 & 2.708 $\pm$ 0.01695 & -0.01573 $\pm$ 0.02912 \\
+   Randomized & 0.5624 $\pm$ 0.007468 & 2.473 $\pm$ 0.005281 & 2.176 $\pm$ 0.01352 & 0.2151 $\pm$ 0.02259 \\
+   Probe & 0.5354 $\pm$ 0.01073 & 3.247 $\pm$ 0.007586 & &  \\
+   Embeded & 1.522 $\pm$ 0.01602 & 3.443 $\pm$ 0.01133 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 40-50\%}} \\
+   \hline
+   Multiplicity & 0.6493 $\pm$ 0.00775 & 2.57 $\pm$ 0.00548 & 2.128 $\pm$ 0.01275 & 0.164 $\pm$ 0.02121 \\
+   Randomized & 0.4874 $\pm$ 0.00606 & 2.006 $\pm$ 0.004285 & 1.707 $\pm$ 0.01441 & 0.1095 $\pm$ 0.03016 \\
+   Probe & 0.4301 $\pm$ 0.008425 & 2.554 $\pm$ 0.005957 & &  \\
+   Embeded & 0.6655 $\pm$ 0.01305 & 2.764 $\pm$ 0.009228 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 50-60\%}} \\
+   \hline
+   Multiplicity & 0.5786 $\pm$ 0.006069 & 2.016 $\pm$ 0.004292 & 1.596 $\pm$ 0.01481 & 0.09528 $\pm$ 0.02948 \\
+   Randomized & 0.4169 $\pm$ 0.004928 & 1.633 $\pm$ 0.003485 & 1.404 $\pm$ 0.0117 & 0.1413 $\pm$ 0.02455 \\
+   Probe & 0.3294 $\pm$ 0.006518 & 1.985 $\pm$ 0.004609 & &  \\
+   Embeded & -0.0173 $\pm$ 0.01027 & 2.151 $\pm$ 0.007265 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 60-70\%}} \\
+   \hline
+   Multiplicity & 0.2967 $\pm$ 0.004806 & 1.596 $\pm$ 0.003399 & 1.261 $\pm$ 0.01064 & -0.08994 $\pm$ 0.01854 \\
+   Randomized & 0.2806 $\pm$ 0.004109 & 1.362 $\pm$ 0.002906 & 1.194 $\pm$ 0.0103 & 0.09037 $\pm$ 0.02023 \\
+   Probe & 0.1645 $\pm$ 0.005122 & 1.566 $\pm$ 0.003622 & &  \\
+   Embeded & -0.4811 $\pm$ 0.008271 & 1.709 $\pm$ 0.005849 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 70-80\%}} \\
+   \hline
+   Multiplicity & -0.1899 $\pm$ 0.003971 & 1.321 $\pm$ 0.002808 & 1.128 $\pm$ 0.006796 & -0.3912 $\pm$ 0.01009 \\
+   Randomized & -0.08286 $\pm$ 0.003621 & 1.202 $\pm$ 0.00256 & 1.099 $\pm$ 0.007232 & -0.1924 $\pm$ 0.01212 \\
+   Probe & -0.1566 $\pm$ 0.004217 & 1.293 $\pm$ 0.002982 & &  \\
+   Embeded & -0.776 $\pm$ 0.006609 & 1.351 $\pm$ 0.004673 & &  \\
+   \hline
+  \end{tabular}
+ \end{center}
+\end{table}
+
+\begin{table}[hbt!]
+ \begin{center}
+  \begin{tabular}{|c|c|c|c|c|}
+   \hline
+   & $\sigma$ & $\mu$ & $\sigma^{l.h.s.}$ & $\mu^{l.h.s.}$ \ 
+   \hline \hline
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 0-5\%}} \\
+   \hline
+   Sub1 & 0.4629 $\pm$ 0.02646 & 5.522 $\pm$ 0.01871 & 4.834 $\pm$ 0.05492 & -0.4802 $\pm$ 0.1 \\
+   Randomized & 0.3073 $\pm$ 0.0229 & 4.769 $\pm$ 0.01619 & 4.294 $\pm$ 0.04565 & -0.3361 $\pm$ 0.08387 \\
+   Probe & 0.6002 $\pm$ 0.02915 & 5.473 $\pm$ 0.02061 & &  \\
+   Embeded & 2.932 $\pm$ 0.04396 & 5.223 $\pm$ 0.03108 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 5-10\%}} \\
+   \hline
+   Sub1 & 0.3904 $\pm$ 0.02209 & 5.194 $\pm$ 0.01562 & 4.549 $\pm$ 0.04308 & -0.4636 $\pm$ 0.07995 \\
+   Randomized & 0.1863 $\pm$ 0.01855 & 4.352 $\pm$ 0.01312 & 3.915 $\pm$ 0.0357 & -0.4236 $\pm$ 0.06329 \\
+   Probe & 0.4925 $\pm$ 0.02408 & 5.103 $\pm$ 0.01703 & &  \\
+   Embeded & 2.495 $\pm$ 0.03848 & 5.081 $\pm$ 0.02721 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 10-20\%}} \\
+   \hline
+   Sub1 & 0.2849 $\pm$ 0.01396 & 4.64 $\pm$ 0.009872 & 3.996 $\pm$ 0.02548 & -0.5571 $\pm$ 0.04511 \\
+   Randomized & 0.09035 $\pm$ 0.01144 & 3.793 $\pm$ 0.008087 & 3.45 $\pm$ 0.02217 & -0.3352 $\pm$ 0.03768 \\
+   Probe & 0.3626 $\pm$ 0.01524 & 4.58 $\pm$ 0.01078 & &  \\
+   Embeded & 1.944 $\pm$ 0.02568 & 4.692 $\pm$ 0.01816 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 20-30\%}} \\
+   \hline
+   Sub1 & 0.1632 $\pm$ 0.01167 & 3.875 $\pm$ 0.008253 & 3.223 $\pm$ 0.02397 & -0.7037 $\pm$ 0.04485 \\
+   Randomized & 0.0496 $\pm$ 0.00943 & 3.125 $\pm$ 0.006668 & 2.756 $\pm$ 0.02127 & -0.4433 $\pm$ 0.03985 \\
+   Probe & 0.2211 $\pm$ 0.01273 & 3.839 $\pm$ 0.009003 & &  \\
+   Embeded & 1.198 $\pm$ 0.02188 & 4.059 $\pm$ 0.01547 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 30-40\%}} \\
+   \hline
+   Sub1 & 0.05782 $\pm$ 0.009369 & 3.109 $\pm$ 0.006625 & 2.609 $\pm$ 0.01901 & -0.5734 $\pm$ 0.03473 \\
+   Randomized & 0.01602 $\pm$ 0.007801 & 2.583 $\pm$ 0.005516 & 2.232 $\pm$ 0.0158 & -0.4559 $\pm$ 0.02904 \\
+   Probe & 0.1017 $\pm$ 0.01013 & 3.065 $\pm$ 0.007162 & &  \\
+   Embeded & 0.3646 $\pm$ 0.01831 & 3.361 $\pm$ 0.01295 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 40-50\%}} \\
+   \hline
+   Sub1 & 0.01645 $\pm$ 0.007387 & 2.449 $\pm$ 0.005223 & 2.034 $\pm$ 0.01446 & -0.4788 $\pm$ 0.02538 \\
+   Randomized & -0.002246 $\pm$ 0.006339 & 2.098 $\pm$ 0.004483 & 1.846 $\pm$ 0.01375 & -0.306 $\pm$ 0.02456 \\
+   Probe & 0.04324 $\pm$ 0.007916 & 2.4 $\pm$ 0.005597 & &  \\
+   Embeded & -0.2656 $\pm$ 0.01497 & 2.714 $\pm$ 0.01059 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 50-60\%}} \\
+   \hline
+   Sub1 & 0.006682 $\pm$ 0.005762 & 1.914 $\pm$ 0.004074 & 1.636 $\pm$ 0.01121 & -0.2914 $\pm$ 0.02017 \\
+   Randomized & -5.466e-05 $\pm$ 0.005123 & 1.697 $\pm$ 0.003622 & 1.496 $\pm$ 0.01095 & -0.2187 $\pm$ 0.01926 \\
+   Probe & 0.01627 $\pm$ 0.006109 & 1.861 $\pm$ 0.00432 & &  \\
+   Embeded & -0.7871 $\pm$ 0.01194 & 2.156 $\pm$ 0.008442 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 60-70\%}} \\
+   \hline
+   Sub1 & -0.0005533 $\pm$ 0.004497 & 1.493 $\pm$ 0.00318 & 1.292 $\pm$ 0.008493 & -0.2096 $\pm$ 0.01499 \\
+   Randomized & -0.001903 $\pm$ 0.004145 & 1.373 $\pm$ 0.002931 & 1.226 $\pm$ 0.009215 & -0.1605 $\pm$ 0.01554 \\
+   Probe & 0.01261 $\pm$ 0.004798 & 1.467 $\pm$ 0.003393 & &  \\
+   Embeded & -1.077 $\pm$ 0.009537 & 1.713 $\pm$ 0.006744 & &  \\
+   \hline
+   \multicolumn{5}{|c|}{\textbf{Centrality: 70-80\%}} \\
+   \hline
+   Sub1 & -0.003272 $\pm$ 0.003664 & 1.219 $\pm$ 0.002591 & 1.11 $\pm$ 0.007839 & -0.1094 $\pm$ 0.01374 \\
+   Randomized & -0.006655 $\pm$ 0.003468 & 1.151 $\pm$ 0.002452 & 1.065 $\pm$ 0.007176 & -0.1029 $\pm$ 0.01282 \\
+   Probe & 0.005844 $\pm$ 0.00388 & 1.189 $\pm$ 0.002744 & &  \\
+   Embeded & -1.246 $\pm$ 0.007742 & 1.39 $\pm$ 0.005474 & &  \\
+   \hline
+  \end{tabular}
+ \end{center}
+\end{table}
+

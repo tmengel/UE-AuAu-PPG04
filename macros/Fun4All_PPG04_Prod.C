@@ -1,8 +1,8 @@
 #include <GlobalVariables.C>
 
-//#include "Calo_Calib.C"
-//#include "Calo_Fitting.C"
-#include "PPG04_Calo_Calib.C"
+#include "Calo_Calib.C"
+#include "Calo_Fitting.C"
+
 #include "PPG04.C"
 
 #include <ffamodules/CDBInterface.h>
@@ -147,15 +147,6 @@ void Fun4All_PPG04_2024(
     PPG04::isMC = !PPG04::isDATA;
     PPG04::isTRUTHJETS = ( mode == "PYTHIA" );
 
-      // calo calib settings
-      CALOCALIB::isData = PPG04::isDATA;
-      CALOCALIB::is2024 = true;
-      CALOCALIB::cemc_software_zs = 60;
-      CALOCALIB::ohcal_software_zs = 30;
-      CALOCALIB::ihcal_software_zs = 30;
-      CALOCALIB::CalibVersion = 1;
-
-      
     PPG04::PPG04RandomSeed = PHRandomSeed();
 
     // calo manipulation
@@ -223,21 +214,14 @@ void Fun4All_PPG04_2024(
     }
 
    
-    // if ( PPG04::isDATA ) {
-    //     CALOFITTING::cemc_software_zs = 60;
-    //     CALOFITTING::ohcal_software_zs = 30;
-    //     CALOFITTING::ihcal_software_zs = 30;
-    //     Process_Calo_Fitting();
-    // }
-
     if ( PPG04::isDATA ) {
-        FitTowers();
+        CALOFITTING::cemc_software_zs = 60;
+        CALOFITTING::ohcal_software_zs = 30;
+        CALOFITTING::ihcal_software_zs = 30;
+        Process_Calo_Fitting();
     }
 
-    CalibTowers();
-
-
-    // Process_Calo_Calib();
+    Process_Calo_Calib();
 
     if ( PPG04::isDATA ) {
      

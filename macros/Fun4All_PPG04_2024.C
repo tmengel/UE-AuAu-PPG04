@@ -1,8 +1,6 @@
 #include <GlobalVariables.C>
 
-#include "Calo_Calib.C"
-#include "Calo_Fitting.C"
-
+#include "PPG04_Calo_Calib.C"
 #include "PPG04.C"
 
 #include <ffamodules/CDBInterface.h>
@@ -36,12 +34,10 @@ R__LOAD_LIBRARY( libffamodules.so )
 R__LOAD_LIBRARY( libmbd.so )
 R__LOAD_LIBRARY( libg4mbd.so )
 R__LOAD_LIBRARY( libcalotrigger.so )
-
 R__LOAD_LIBRARY( libg4centrality.so )
 R__LOAD_LIBRARY( libcentrality.so )
 R__LOAD_LIBRARY( libglobalvertex.so )
 R__LOAD_LIBRARY( libg4vertex.so )
-
 R__LOAD_LIBRARY( libzdcinfo.so )
 
 void GetRunSegment( const std::string & filelist, int & run_number, int & run_segment ) 
@@ -75,7 +71,6 @@ std::string GetOutputFile( const std::string & mode,
     }
     oss << mode << "-";
     if ( doRunMode == 1 ) { oss << "RandEtaPhi-"; }
-    else if ( doRunMode == 2 ) { oss << "Embed-"; }
     oss << prodTag << "-" << std::setw( 6 ) << std::setfill( '0' ) << timeStamp << "_"
         << std::setw( 10 ) << std::setfill( '0' ) << run_number 
         << "-" << std::setw( 6 ) << std::setfill( '0' ) << run_segment << ".root";
@@ -90,13 +85,13 @@ void Fun4All_PPG04_2024(
     const int nEvents = 100,
     const int doRunMode = 0,
     const std::string & outdir = "./",
-    const std::string & dst_input_list0 = "dst_triggered_event_run2auau-00054912.list",
-    const std::string & dst_input_list1 = "dst_calo_waveform.list",
-    const std::string & dst_input_list2 = "dst_mbd_epd.list",
-    const std::string & dst_input_list_emb0 = "dst_calo_cluster_dijet.list",
-    const std::string & dst_input_list_emb1 = "dst_truth_jet_dijet.list",
-    const std::string & dst_input_list_emb2 = "dst_mbd_epd_dijet.list",
-    const std::string & dst_input_list_emb3 = "dst_global_dijet.list"
+    const std::string & dst_input_list0 = "filelists/dst_triggered_event_run2auau-00054912.list",
+    const std::string & dst_input_list1 = "filelists/dst_calo_waveform.list",
+    const std::string & dst_input_list2 = "filelists/dst_mbd_epd.list",
+    const std::string & dst_input_list_emb0 = "filelists/dst_calo_cluster_dijet.list",
+    const std::string & dst_input_list_emb1 = "filelists/dst_truth_jet_dijet.list",
+    const std::string & dst_input_list_emb2 = "filelists/dst_mbd_epd_dijet.list",
+    const std::string & dst_input_list_emb3 = "filelists/dst_global_dijet.list"
 )
 {
 
@@ -122,30 +117,29 @@ void Fun4All_PPG04_2024(
     CaloManip::doTowerRandomizer = PPG04::doCaloManip;
     CaloManip::doMinEMCalEnergy = false;
 
-    PPG04::doEmbedding = ( doRunMode == 2 );
+    PPG04::doEmbedding =  false;
     PPG04::isTRUTHJETS = PPG04::doEmbedding && true;
-    Embdedding::doSim = PPG04::doEmbedding && false;
-    Embdedding::doTruth = PPG04::doEmbedding;
-    Embdedding::SrcTOP = "TOPData";
-    Embdedding::TgtTOP = "TOP";
-    Embdedding::TruthJetNode = "AntiKt_Truth_r04";
+    // Embdedding::doSim = PPG04::doEmbedding && false;
+    // Embdedding::doTruth = PPG04::doEmbedding;
+    // Embdedding::SrcTOP = "TOPData";
+    // Embdedding::TgtTOP = "TOP";
+    // Embdedding::TruthJetNode = "AntiKt_Truth_r04";
 
     // calo calib settings
-    CALOCALIB::EMBED = PPG04::doEmbedding;
     CALOCALIB::isData = PPG04::isDATA;
-    CALOCALIB::EmbdeddingSrcTOP =  Embdedding::SrcTOP;
-    CALOCALIB::EmbdeddingTgtTOP = Embdedding::TgtTOP;
+    CALOCALIB::is2024 = true;
+    CALOCALIB::cemc_software_zs = 60;
+    CALOCALIB::ohcal_software_zs = 30;
+    CALOCALIB::ihcal_software_zs = 30;
+    CALOCALIB::CalibVersion = 0; //
 
-    CALOFITTING::cemc_software_zs = 60;
-    CALOFITTING::ohcal_software_zs = 30;
-    CALOFITTING::ihcal_software_zs = 30;
 
     // event selection
     PPG04::doEventSelect = true;
     EventSelect::doZVrtxCut = true;
     EventSelect::doMinBiasCut = !PPG04::isMC;
     EventSelect::doTowerChi2Cut = false;
-    EventSelect::ZVrtxCutRange = {20,-20};
+    EventSelect::ZVrtxCutRange = {30,-30};
     
     // background subtraction
     PPG04::doIterBackground = true;
@@ -153,16 +147,16 @@ void Fun4All_PPG04_2024(
     PPG04::doMultRho = true;
 
     // random cones
-    PPG04::doRandomCones = !PPG04::doEmbedding;
-    RandomCones::ConeRadius = 0.4;
-    RandomCones::ConeAbsEta = 0.6;
+    PPG04::doRandomCones = true;
+    RandomCones::ConeRadius = 0.2;
+    RandomCones::ConeAbsEta = 0.8;
     RandomCones::ConeMaskedThreshold = 0.00;
 
     // probes
-    PPG04::doJetProbe = !PPG04::doEmbedding;
+    PPG04::doJetProbe = false;// !PPG04::doEmbedding;
 
     // calo windows
-    PPG04::doCaloWindows = !PPG04::doEmbedding;
+    PPG04::doCaloWindows = true;//  !PPG04::doEmbedding;
    
     // analysis writer
     PPG04::doAnaWriter = true; 
@@ -171,7 +165,7 @@ void Fun4All_PPG04_2024(
     PPG04Output::writeZVtx = true;
     PPG04Output::writeCent = true;
     PPG04Output::writeIterBackground = true;
-    PPG04Output::doFullWindow = PPG04::doCaloWindows && true;
+    PPG04Output::doFullWindow = PPG04::doCaloWindows && false;
     PPG04Output::doCemcOnlyWindow = PPG04::doCaloWindows && false;
 
     // calo spy
@@ -197,7 +191,7 @@ void Fun4All_PPG04_2024(
     rc -> set_uint64Flag( "TIMESTAMP", CDB::timestamp );
     rc -> set_IntFlag( "PPG04RANDOMSEED", PPG04::PPG04RandomSeed );
 
-    // read in filelists
+    
     for ( unsigned int idx = 0; idx < dst_files.size( ); idx++ ) {
 
         auto input = new Fun4AllDstInputManager( "DSTINPUT_" + std::to_string( idx ) );
@@ -206,38 +200,12 @@ void Fun4All_PPG04_2024(
         se -> registerInputManager( input );
     
     }
-    if ( PPG04::doEmbedding ) {
-
-        auto sync = se->getSyncManager();
-        sync->MixRunsOk(true);
-        
-        auto input_sim = new Fun4AllNoSyncDstInputManager("DSTSimCalo","DST", CALOCALIB::EmbdeddingSrcTOP );
-        input_sim->AddListFile( dst_input_list_emb0 );
-        input_sim->Verbosity( 0 );
-        se->registerInputManager(input_sim);
-        
-        auto input_truth = new Fun4AllNoSyncDstInputManager("DSTTruthJet","DST", CALOCALIB::EmbdeddingSrcTOP );
-        input_truth->AddListFile( dst_input_list_emb1 );
-        input_truth->Verbosity( 0 );
-        se->registerInputManager(input_truth);
-        
-        auto input_mbd = new Fun4AllNoSyncDstInputManager("DSTMBD","DST", CALOCALIB::EmbdeddingSrcTOP );
-        input_mbd->AddListFile( dst_input_list_emb2 );
-        input_mbd->Verbosity( 0 );
-        se->registerInputManager(input_mbd);
-        
-        // auto input_global = new Fun4AllNoSyncDstInputManager("DSTGlobal","DST", CALOCALIB::EmbdeddingSrcTOP );
-        // input_global->AddListFile( dst_input_list_emb3 );
-        // input_global->Verbosity( 0 );
-        // se->registerInputManager(input_global);
-    }
 
     if ( PPG04::isDATA ) {
-
-        Process_Calo_Fitting();
+        FitTowers();
     }
 
-    Process_Calo_Calib();
+    CalibTowers();
 
     if ( PPG04::isDATA ) {
      
@@ -258,8 +226,8 @@ void Fun4All_PPG04_2024(
 
         auto mb = new MinimumBiasClassifier();
         mb->Verbosity( Enable::VERBOSITY );
-        mb->setOverwriteScale("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_54912.root"); // will change run by run
-        mb->setOverwriteVtx("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_54912.root"); // will change run by run
+        // mb->setOverwriteScale("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_54912.root"); // will change run by run
+        // mb->setOverwriteVtx("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_54912.root"); // will change run by run
         se->registerSubsystem( mb );
 
         auto cent = new CentralityReco();
@@ -284,12 +252,11 @@ void Fun4All_PPG04_2024(
       
 
     InitPPG04();
-
     RunPPG04();
 
     se -> run( nEvents );
-
     se -> End();   
+
     std::cout << "Done!" << std::endl;
     gSystem -> Exit( 0 );
 }

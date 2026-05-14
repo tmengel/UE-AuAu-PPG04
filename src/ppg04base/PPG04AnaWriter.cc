@@ -1425,7 +1425,7 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
       exit(-1); // fatal error
     }
     for ( auto jet : *truthjets ) {
-      if ( std::abs(jet->get_eta()) > 0.7 ) { continue; }
+      if ( std::abs(jet->get_eta()) > 0.6 ) { continue; }
       if ( jet->get_pt() < 5.0 ) { continue; }
       m_truth_jet_eta.push_back(jet->get_eta());
       m_truth_jet_phi.push_back(jet->get_phi());
@@ -1456,7 +1456,7 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
 
     auto PROBEJET = new Jetv2();
     float pt = 30;
-    float eta = m_random->Uniform(-0.7, 0.7);
+    float eta = m_random->Uniform(-0.6, 0.6);
     float phi = m_random->Uniform(-M_PI, M_PI);
     float px = pt*cos(phi);
     float py = pt*sin(phi);
@@ -1484,7 +1484,7 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
     }
     auto PROBEJET = new Jetv2();
     float pt = 30;
-    float eta = m_random->Uniform(-0.7, 0.7);
+    float eta = m_random->Uniform(-0.6, 0.6);
     float phi = m_random->Uniform(-M_PI, M_PI);
     float px = pt*cos(phi);
     float py = pt*sin(phi);
@@ -1590,9 +1590,9 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
 
   fastjet::JetDefinition * jet_def = new fastjet::JetDefinition(fastjet::antikt_algorithm, 0.4, fastjet::E_scheme, fastjet::Best);
   fastjet::AreaDefinition area_def(fastjet::active_area_explicit_ghosts, fastjet::GhostedAreaSpec(1.1, 1, 0.01));
-  fastjet::Selector jet_selector = (!fastjet::SelectorIsPureGhost()) * (fastjet::SelectorAbsEtaMax(0.7) && fastjet::SelectorPtMin(5.0));
+  fastjet::Selector jet_selector = (!fastjet::SelectorIsPureGhost()) * (fastjet::SelectorAbsEtaMax(0.6) && fastjet::SelectorPtMin(10.0));
   auto m_cluseq = new fastjet::ClusterSequenceArea( calo_pseudojets, * jet_def, area_def );
-  auto fastjets = jet_selector(m_cluseq->inclusive_jets(5.0));
+  auto fastjets = jet_selector(m_cluseq->inclusive_jets(10.0));
   for ( auto & fastjet : fastjets )  {
 
     bool has_a_probe = false;
@@ -1646,8 +1646,8 @@ int PPG04AnaWriter::GetEmbJetInfo( PHCompositeNode *topNode , JetMODE mode )
     float phi = fastjet.phi_std();
     float eta = fastjet.eta();
 
-    if (tpt < 5 ) { continue; }
-    if ( std::abs(eta) > 0.7 ) { continue; }
+    if (tpt < 10 ) { continue; }
+    if ( std::abs(eta) > 0.6 ) { continue; }
 
     if ( mode == JetMODE::EMB ){
       m_emb_jet_eta.push_back(eta);

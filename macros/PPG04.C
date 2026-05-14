@@ -124,11 +124,13 @@ namespace CaloWindows {
 } // namespace CaloWindows
 
 namespace Embdedding {
-    std::string SrcTOP = "TOPData";
-    std::string TgtTOP = "TOP";
-    bool doSim = false;
     bool doTruth = false;
+    bool doSimRetower = false;
+    bool doSim = false;
     std::string TruthJetNode = "AntiKt_Truth_r04";
+    std::string SimJetNode = "AntiKt_Sim_r04";
+    std::string SimJetNodeRe = "AntiKt_Sim_Retower_r04";
+
 } 
 
 namespace PPG04CaloSpy {
@@ -158,6 +160,9 @@ void AddRhoReco( const std::vector< Jet::SRC > srcs, const std::string & output_
 {
     unsigned int idx = PPG04::RhoRecos.size();
     auto dtr = new DetermineTowerRho( "DetermineTowerRho_" + std::to_string( idx ) );
+    if (PPG04::doEmbedding) {
+        dtr -> set_omit_nhardest( 4 );
+    }
     dtr -> Verbosity( Enable::VERBOSITY );
     if ( doArea ) {
         std::string outnode = "TowerRho_AREA";
@@ -360,14 +365,14 @@ void RunPPG04()
         PPG04CaloSpy::CaloSpyNodes.push_back( "TOWERINFO_CALIB_HCALOUT_ORIGINAL" );
     }
 
-    // Add Calo nodes to AnaWriter
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_CEMC" );
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALIN" );
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALOUT" );
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_CEMC_RETOWER" );
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_CEMC_RETOWER_SUB1" );
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALIN_SUB1" );
-    PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALOUT_SUB1" );
+    // // Add Calo nodes to AnaWriter
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_CEMC" );
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALIN" );
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALOUT" );
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_CEMC_RETOWER" );
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_CEMC_RETOWER_SUB1" );
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALIN_SUB1" );
+    // PPG04Output::CaloNodes.push_back( "TOWERINFO_CALIB_HCALOUT_SUB1" );
 
     if ( PPG04::doIterBackground ) {
         
@@ -426,6 +431,32 @@ void RunPPG04()
         se -> registerSubsystem( cwr );
     }
 
+    if ( PPG04::doEmbedding ) {
+
+        if ( PPG04::doIterBackground ) {
+            auto ijr = new JetReco();
+            ijr -> add_input( new TowerJetInput( Jet::CEMC_TOWERINFO_SUB1, PPG04::TowerPrefix ) );
+            ijr -> add_input( new TowerJetInput( Jet::HCALIN_TOWERINFO_SUB1, PPG04::TowerPrefix ) );
+            ijr -> add_input( new TowerJetInput( Jet::HCALOUT_TOWERINFO_SUB1, PPG04::TowerPrefix ) );
+            ijr -> add_algo( new FastJetAlgoSub( Jet::ANTIKT, 0.4 ), "AntiKt_Tower_r04_Sub1" );
+            ijr -> set_algo_node( "ANTIKT" );
+            ijr -> set_input_node( "TOWER" );
+            ijr -> Verbosity( Enable::VERBOSITY );
+            se -> registerSubsystem( ijr );
+        }
+
+        auto jr = new JetReco();
+        jr -> add_input( new TowerJetInput( Jet::CEMC_TOWERINFO, PPG04::TowerPrefix ) );
+        jr -> add_input( new TowerJetInput( Jet::HCALIN_TOWERINFO, PPG04::TowerPrefix ) );
+        jr -> add_input( new TowerJetInput( Jet::HCALOUT_TOWERINFO, PPG04::TowerPrefix ) );
+        jr -> add_algo( new FastJetAlgoSub( Jet::ANTIKT, 0.4 ), "AntiKt_Tower_r04" );
+        jr -> set_algo_node( "ANTIKT" );
+        jr -> set_input_node( "TOWER" );
+        jr -> Verbosity( Enable::VERBOSITY );
+        se -> registerSubsystem( jr );
+
+    }
+
     std::cout << "PPG04::Running output modules" << std::endl;
     if ( PPG04::doCaloSpy ) {
         std::cout << "CaloSpy file: " << PPG04CaloSpy::outfile << std::endl;
@@ -482,13 +513,7 @@ void RunPPG04()
             inohcal->set_GlobalVertexType(GlobalVertex::MBD);
             std::vector< JetInput * > jet_inputs = { incemc, inihcal, inohcal }; 
             PPG04::AnaWriterHandler -> do_emb_jet( jet_inputs );
-            if ( Embdedding::doSim ){
-                PPG04::AnaWriterHandler -> do_sim_jet( Embdedding::SrcTOP );
-            }
-           
-            if ( PPG04::isTRUTHJETS &&  Embdedding::doTruth ) {
-                PPG04::AnaWriterHandler -> do_truth_jet( Embdedding::TruthJetNode,  Embdedding::SrcTOP );
-            }
+             
             if ( PPG04::doIterBackground ) {
                 TowerJetInput *incemc_sub1 = new TowerJetInput(Jet::CEMC_TOWERINFO_SUB1, PPG04::TowerPrefix);
                 TowerJetInput *inihcal_sub1 = new TowerJetInput(Jet::HCALIN_TOWERINFO_SUB1, PPG04::TowerPrefix);
@@ -499,6 +524,18 @@ void RunPPG04()
                 std::vector< JetInput * > jet_inputs_sub1 = { incemc_sub1, inihcal_sub1, inohcal_sub1 }; 
                 PPG04::AnaWriterHandler -> do_emb_jet_sub1( jet_inputs_sub1 );
             }
+
+            if ( Embdedding::doSim ){
+                PPG04::AnaWriterHandler -> do_sim_jet( Embdedding::SimJetNode   );
+            }
+            if ( Embdedding::doSimRetower ){
+                PPG04::AnaWriterHandler -> do_sim_retower_jet( Embdedding::SimJetNodeRe );
+            }
+
+            if ( Embdedding::doTruth ) {
+                PPG04::AnaWriterHandler -> do_truth_jet( true, Embdedding::TruthJetNode );
+            }
+           
         }
         se -> registerSubsystem( PPG04::AnaWriterHandler );
     }  

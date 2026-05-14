@@ -19,12 +19,17 @@ bool OVERRIDE = true;
 const float V2_VALUES[] = {2.32, 3.39, 4.76, 6.18, 7.03, 7.4, 7.44, 7.23, 6.96};
 const float V3_VALUES[] = {1.45, 1.62, 1.76, 1.9, 1.99, 2.05, 1.92, 1.75, 1.57};
 // const float X_CENT_BINS[]= {0, 5, 10, 20, 30, 40, 50, 60, 70, 80};
-const float X_CENT_BINS[]= {0, 20, 40, 60, 80, 100};
-const int N_X_CENT_BINS = sizeof(X_CENT_BINS)/sizeof(X_CENT_BINS[0]) - 1;
+// const int N_X_CENT_BINS = sizeof(X_CENT_BINS)/sizeof(X_CENT_BINS[0]) - 1;
+// float MAX_X_CENT = 80;
+const int N_X_CENT_BINS = 40;
+float X_CENT_BINS[N_X_CENT_BINS+1];
 float MAX_X_CENT = 80;
 
 const std::vector < std::pair < unsigned int, unsigned int > > k_calo_window_dims_hcal_geom = {
     {1,1}, {2,2}, {3,4}, {5,6}, {7,8}, {9,10}, {11,12}, {13,13}
+}; 
+const std::vector < float > calo_window_fit_bounds = {
+    1, 4, 12, 30, 56, 90, 132, 169
 }; 
 const unsigned int k_window_array_size = k_calo_window_dims_hcal_geom.size();
 const int N_WINDOW_BINS = 200;
@@ -76,7 +81,7 @@ float MAX_RESO = 59.5;
 float MIN_RESO = -60.5;
 float RESO_BINS[N_RESO_BINS+1];
 
-const float AREA_CONE = TMath::Pi()*0.2*0.2;
+const float AREA_CONE = TMath::Pi()*0.4*0.4;
 const float AREA_TOWER_CEMC = (2.0*TMath::Pi()/256.0)*(2.2/96.0);
 const float AREA_HCAL_TOWER = (2.0*TMath::Pi()/64.0)*(2.2/24.0);
 const float N_CEMC_TOWERS = 256*94;
@@ -95,7 +100,7 @@ std::string output_dir = "plots/";
 
 void SetBins()
 {
-    // for ( int i = 0; i < N_X_CENT_BINS+1; ++i ) { X_CENT_BINS[i] = i*(MAX_X_CENT)/N_X_CENT_BINS; }
+    for ( int i = 0; i < N_X_CENT_BINS+1; ++i ) { X_CENT_BINS[i] = i*(MAX_X_CENT)/N_X_CENT_BINS; }
     for ( int i = 0; i < N_SUM_ET_Q_BINS+1; ++i ) { SUM_ET_Q_BINS[i] = i*(MAX_SUM_ET_Q-MIN_SUM_ET_Q)/N_SUM_ET_Q_BINS; }
     for ( int i = 0; i < N_ZVTX_BINS+1; ++i ) { ZVTX_BINS[i] = MIN_ZVTX + i*(MAX_ZVTX-MIN_ZVTX)/N_ZVTX_BINS; }
     for ( int i = 0; i < N_TOWERCOMP_BINS+1; ++i ) { TOWERCOMP_BINS[i] = TOWERCOMP_MIN + i*(TOWERCOMP_MAX-TOWERCOMP_MIN)/N_TOWERCOMP_BINS; }
@@ -214,11 +219,12 @@ void WindowPlots(const std::string input_file, const std::string & prefix);
 void WindowSlicesPlots(const std::string input_file, const std::string & prefix);
 
 void WindowFits(const std::string input_file, const std::string & prefix);
+void WindowFitSys(const std::string input_file, const std::string & prefix);
 void WindowFitsMBD(const std::string input_file, const std::string & prefix);
 void DeltaFits(const std::string input_file,  const std::string & prefix);
 
 
-void PPG04_Plots() {
+void PPG04_Plots_Window() {
 
     TH1::SetDefaultSumw2();
     TH2::SetDefaultSumw2();
@@ -233,10 +239,10 @@ void PPG04_Plots() {
 
     SetBins();
     
-    const std::string & input_file_basic = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/APRIL15_R02/basic_r02.root";
-    const std::string & input_file_random = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/APRIL15_R02/random_r02.root";
+    const std::string & input_file_basic = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_basic.root";
+    const std::string & input_file_random = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/NEW/feb10_random.root";
     const std::string & input_file_embed = "/sphenix/user/tmengel/UE-AuAu-PPG04/rootfiles/FEB7/feb7_embed.root";
-    output_dir = MakeGetDir("auaujets/");
+    output_dir = MakeGetDir("prelim/");
 
     std::cout << "PPG04 plots starting." << std::endl;
     std::cout << "Output directory: " << output_dir << std::endl;
@@ -246,34 +252,34 @@ void PPG04_Plots() {
         std::cout << infile << std::endl;
     }
 
-    OVERRIDE = true;
+    OVERRIDE = false;
     // LoadNevents(input_file_basic);
     // auto global_file = ProcessGlobal(input_file_basic, "global.root");
     // auto rho_file = ProcessRhoTree(input_file_basic, "rho.root");
     // auto rho_file_random = ProcessRhoTree(input_file_random, "rho-random.root");
-    auto cone_file_basic = ProcessConeTree(input_file_basic, "basic.root");
-    auto cone_file_random = ProcessConeTree(input_file_random, "random.root");
+    // auto cone_file_basic = ProcessConeTree(input_file_basic, "basic.root");
+    // auto cone_file_random = ProcessConeTree(input_file_random, "random.root");
     // auto poisson_file = ProcessPoisson(input_file_basic, "poisson.root");
-    // auto window_file = ProcessWindowTree(input_file_basic, "window.root");
+    auto window_file = ProcessWindowTree(input_file_basic, "window.root");
     // auto mbd_window_file = ProcessWindowTreeMBD(input_file_basic, "windowMBD.root");
     // auto window_slice_file = ProcessWindowSlices(input_file_basic, "window-slices.root");
     // auto probe_file = ProcessProbeTree(input_file_basic, "probe.root");
-    auto probe_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/offline/plots/FEB10/probe/probes.root";
-    // /sphenix/user/tmengel/UE-AuAu-PPG04/offline/prelim/EmbedJets/probes/embed/embed.root
-    auto embed_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/offline/plots/Embed-Mar23/probes/embed/embed.root";
+    // auto embed_file = "/sphenix/user/tmengel/UE-AuAu-PPG04/offline/plots/Embed-Mar23/probes/embed/embed.root";
+
     std::cout << "PPG04 creating plots finished." << std::endl;
-    // std::cout << "Embed file: " << embed_file << std::endl;
+
     // GlobalPlots(global_file, "global");
     // RhoPlots(rho_file, "rho");
     // RhoPlots(rho_file_random, "rho/random");
     // MultCurves(embed_file, "mult_method");
-    // WindowFits(window_file, "window");
+    WindowFits(window_file, "window");
+    WindowFitSys(window_file, "windowsys");
     // WindowFitsMBD(mbd_window_file, "windowMBD");
     // DeltaPlotsXcheck(cone_file_basic, cone_file_random, "deltaX");
     // DO_GAMMA = true;
     // DeltaPlots(cone_file_basic, cone_file_random, probe_file, embed_file, "delta-gamma");
-    DO_GAMMA = false;
-    DeltaPlots(cone_file_basic, cone_file_random, probe_file, embed_file, "delta");
+    // DO_GAMMA = false;
+    // DeltaPlots(cone_file_basic, cone_file_random, probe_file, embed_file, "delta");
     // WindowSlicesPlots(input_file_basic, "window-slices");
     
     gSystem->Exit(0);
@@ -386,7 +392,7 @@ std::string ProcessProbeTree(const std::string & input_file, const std::string &
     std::vector<TH2F*> h2s = {h2_area_res_vs_x, h2_mult_res_vs_x, h2_sub1_res_vs_x};
     for ( auto h2 : h2s ) {
         h2->GetXaxis()->SetTitle("Centrality [%]");
-        h2->GetYaxis()->SetTitle("#delta E_{T}^{Raw}^{Probe} [GeV]");
+        h2->GetYaxis()->SetTitle("#delta E_{T,Uncorr.}^{Probe} [GeV]");
     }
     std::vector<std::string> labs = {"Area", "Multiplicity", "Iterative"};
 
@@ -569,7 +575,7 @@ std::string ProcessEmbedTree(const std::string & input_file, const std::string &
     std::vector<TH2F*> h2s = {h2_area_res_vs_x, h2_mult_res_vs_x, h2_sub1_res_vs_x};
     for ( auto h2 : h2s ) {
         h2->GetXaxis()->SetTitle("Centrality [%]");
-        h2->GetYaxis()->SetTitle("#delta E_{T}^{Raw}^{Jet} [GeV]");
+        h2->GetYaxis()->SetTitle("#delta E_{T,Uncorr.}^{Jet} [GeV]");
     }
     std::vector<std::string> labs = {"Area", "Multiplicity", "Iterative"};
 
@@ -1002,13 +1008,13 @@ std::string ProcessConeTree(const std::string & input_file, const std::string & 
     std::vector<TH2F*> h2s = {h2_area_res_vs_x, h2_mult_res_vs_x, h2_sub1_res_vs_x};
     for ( auto h2 : h2s ) {
         h2->GetXaxis()->SetTitle("Centrality [%]");
-        h2->GetYaxis()->SetTitle("#delta E_{T}^{Raw}^{Cone} [GeV]");
+        h2->GetYaxis()->SetTitle("#delta E_{T,Uncorr.}^{Cone} [GeV]");
         
     }
     std::vector<TProfile*> p2s = {p2_area_res, p2_mult_res, p2_sub1_res};
     for ( auto p2 : p2s ) {
         p2->GetXaxis()->SetTitle("Centrality [%]");
-        p2->GetYaxis()->SetTitle("#delta E_{T}^{Raw}^{Cone} [GeV]");
+        p2->GetYaxis()->SetTitle("#delta E_{T,Uncorr.}^{Cone} [GeV]");
     }
     std::vector<std::string> labs = {"Area", "Multiplicity", "Iterative"};
 
@@ -1387,7 +1393,7 @@ std::string ProcessPoisson(const std::string & input_file, const std::string & o
     std::vector< TGraphErrors * > g_poissions = { g_poission, g_poission_v2, g_poission_v3 };
     for ( auto g : g_poissions ) {
         g->GetXaxis()->SetTitle("Centrality [%]");
-        g->GetYaxis()->SetTitle("#sigma(#delta E_{T}^{Raw})");
+        g->GetYaxis()->SetTitle("#sigma(#delta E_{T,Uncorr.})");
     }
 
 
@@ -2839,10 +2845,9 @@ void RhoPlots(const std::string input_file, const std::string & prefix)
     TLatex * tex = new TLatex();
     tex->SetNDC();
     tex->SetTextFont(42);
-    // tex->SetTextSize(0.04);
 
     double tx=0.19;
-    double ty_start=0.87;
+    double ty_start=0.85;
     std::vector<TH2F*> h2s = {h2_rho_area, h2_rho_mult, h2_towerbackground, 
                             h2_rho_times_A, h2_rho_times_N, h2_towerbackground_times_N, 
                             h2_rho_area_vs_sumet, h2_rho_mult_vs_sumet, h2_towerbackground_vs_sumet};
@@ -3042,7 +3047,7 @@ void RhoPlots(const std::string input_file, const std::string & prefix)
             h1->GetXaxis()->SetRangeUser(0, maxx);
             h1->GetXaxis()->SetTitle(h2->GetYaxis()->GetTitle());
             h1->GetYaxis()->SetTitle("Probabilty Density [A.U.]");
-            h1->GetXaxis()->SetTitle("#rho_{A}#kern[0.05]{#times} A, #rho_{M}#kern[0.05]{#times} N [GeV]");
+            h1->GetXaxis()->SetTitle("#rho_{A} #times A [GeV], #rho_{M} #times N [GeV]");
             if ( j == 0 && ihist == 0 ) {
                 h1->Draw("PE");
             } else {
@@ -3063,13 +3068,12 @@ void RhoPlots(const std::string input_file, const std::string & prefix)
     tex2->SetNDC();
     tex2->SetTextFont(42);
     tex2->SetTextSize(0.038);
-    tags = {"#it{Closed Points:#kern[0.05]{#rho_{A}}#kern[0.05]{#times} A}", "#it{Open Points:#kern[0.05]{#rho_{M}}#kern[0.05]{#times} N}"};
+    tags = {"#it{Closed Points: #rho_{A} #times A}", "#it{Open Points: #rho_{M} #times N}"};
     for ( auto tag : tags ) {
         tex2->DrawLatex(tx, ty, tag.c_str());
         ty -= 0.07;
     }
     c->SaveAs(Form("%s/rho_comp.pdf", outdir.c_str()));
-    c->SaveAs(Form("%s/rho_comp.png", outdir.c_str()));
     // ihist++;
     delete c;
     // leg_area->Clear();
@@ -3225,7 +3229,6 @@ void MultCurves(const std::string input_file, const std::string & prefix)
     }
 
     c->SaveAs(Form("%s/nsignal_curves.pdf", outdir.c_str()));
-    c->SaveAs(Form("%s/nsignal_curves.png", outdir.c_str()));
 
     delete c;
     delete leg;
@@ -3235,6 +3238,194 @@ void MultCurves(const std::string input_file, const std::string & prefix)
     return;
 
 }
+
+void WindowFitSys(const std::string input_file, const std::string & prefix)
+{
+
+    std::string outdir = MakeGetDir(output_dir+"/"+prefix);
+    TFile * f = new TFile(input_file.c_str(), "READ");
+    if ( !f->IsOpen() || f->IsZombie() ) { std::cout << "File " << input_file << " is zombie" << std::endl; exit(1); }
+
+   
+    TGraphErrors * g_sigma[N_X_CENT_BINS];
+
+
+    float fit_p0_full[N_X_CENT_BINS];
+    float fit_p0err_full[N_X_CENT_BINS];
+    float fit_chi2_full[N_X_CENT_BINS];
+
+    float fit_p0_tight[N_X_CENT_BINS];
+    float fit_p0err_tight[N_X_CENT_BINS];
+    float fit_chi2_tight[N_X_CENT_BINS];
+
+    float fit_p0_avg[N_X_CENT_BINS];
+    float fit_p0err_avg[N_X_CENT_BINS];
+
+    const float fit_range_full[] = {0, 170};
+    const float fit_range_tight[] = {10, 100};
+
+    float fit_p0_ratio[N_X_CENT_BINS];
+    float fit_p0_sys[N_X_CENT_BINS];
+
+
+    TF1 * fit_sigma;
+    for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
+
+        g_sigma[i] = (TGraphErrors*)f->Get(Form("g_sigma_cent%d", i));
+        if ( !g_sigma[i] ) {
+            std::cout << "WindowFits::Graphs not found" << std::endl; exit(1);
+        }  
+        std::vector<TGraphErrors*> graphs = {g_sigma[i]};
+        
+        for ( auto g : graphs ) {
+            g->GetXaxis()->SetNdivisions(505);
+            g->GetYaxis()->SetNdivisions(505);
+            g->GetXaxis()->SetTitle("A^{nxm} / A^{1x1}");
+            g->SetMarkerStyle(20);
+            g->SetMarkerSize(1.5);
+            g->SetLineColor(kBlack);
+            g->SetMarkerColor(kBlack);
+
+        }
+
+        g_sigma[i]->GetYaxis()->SetTitle("#bar{#sigma} / #bar{#sigma}^{1x1}");
+        float x0 = g_sigma[i]->GetY()[0];
+        float x0err = g_sigma[i]->GetEY()[0];
+
+        for ( int j = 0; j < k_window_array_size; ++j ) {
+            float yerr = g_sigma[i]->GetEY()[j];
+            float y = g_sigma[i]->GetY()[j]/x0;
+            float yerr2 = y*TMath::Sqrt(TMath::Power(yerr/g_sigma[i]->GetY()[j], 2) + TMath::Power(x0err/x0, 2));
+            g_sigma[i]->SetPointError(j, 0, yerr2);
+            g_sigma[i]->SetPoint(j, g_sigma[i]->GetX()[j], y);
+        }
+       
+        TGraphErrors * g_sigma_fit_copy = (TGraphErrors*)g_sigma[i]->Clone(Form("g_sigma_fit_copy_%d", i));
+
+        fit_sigma = new  TF1("fit_sigma", "x^[0]", 0, 500);
+        g_sigma_fit_copy->Fit(fit_sigma, "MRQ", "", fit_range_full[0], fit_range_full[1]);
+        fit_p0_full[i] = fit_sigma->GetParameter(0);
+        fit_p0err_full[i] = fit_sigma->GetParError(0);
+        fit_chi2_full[i] = fit_sigma->GetChisquare()/fit_sigma->GetNDF();
+
+        g_sigma_fit_copy->Fit(fit_sigma, "MRQ", "", fit_range_tight[0], fit_range_tight[1]);
+        fit_p0_tight[i] = fit_sigma->GetParameter(0);
+        fit_p0err_tight[i] = fit_sigma->GetParError(0);
+        fit_chi2_tight[i] = fit_sigma->GetChisquare()/fit_sigma->GetNDF();
+
+        if( fit_p0_full[i] > 0) {
+            fit_p0_ratio[i] = fit_p0_tight[i] / fit_p0_full[i];
+        } else {
+            std::cout << "Warning: fit_p0_full[" << i << "] is zero or negative, setting ratio to 1.0" << std::endl;
+            fit_p0_ratio[i] = 1.0;
+        }
+
+        fit_p0_sys[i] = (1 - fit_p0_ratio[i])*fit_p0_full[i];
+
+        fit_p0_avg[i] = (fit_p0_full[i] + fit_p0_tight[i]) / 2.0;
+        fit_p0err_avg[i] = TMath::Sqrt(TMath::Power(fit_p0err_full[i], 2) + TMath::Power(fit_p0err_tight[i], 2)) / 2.0;
+
+        std::cout << "Cent: " << i 
+                  << ", Full Fit: k_fit = " << fit_p0_full[i] 
+                  << " +/- " << fit_p0err_full[i] 
+                  << ", Chi2/ndf = " << fit_chi2_full[i] 
+                  << ", Tight Fit: k_fit = " << fit_p0_tight[i] 
+                  << " +/- " << fit_p0err_tight[i] 
+                  << ", Chi2/ndf = " << fit_chi2_tight[i]
+                  << ", Ratio = " << fit_p0_ratio[i] 
+                  << ", Systematic Error = " << fit_p0_sys[i]
+                    << ", Average Fit: k_fit = " << fit_p0_avg[i]
+                    << " +/- " << fit_p0err_avg[i]
+                  << std::endl;
+        
+        // and tight fit for the final value
+        delete g_sigma_fit_copy;
+
+    }
+
+
+
+
+    TCanvas * c;
+    TLegend * leg;
+    TLatex * tex = new TLatex();
+    tex->SetNDC();
+    tex->SetTextFont(42);
+
+    double tx=0.19;
+    double ty_start=0.85;
+    double tx_f = 0.55;
+    double ty_f_start = 0.35;
+    std::vector<std::string> tags = {sPHENIX_Tag, DataType_Tag};
+  
+    c = new TCanvas("c", "c", 800, 600);
+    gPad->SetLeftMargin(0.15);
+    gPad->SetRightMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->SetTopMargin(0.05);
+    TGraphErrors * g_sigma_fit = new TGraphErrors(N_X_CENT_BINS);
+    TGraphAsymmErrors  * g_sigma_fit_sys = new TGraphAsymmErrors (N_X_CENT_BINS);
+    for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
+        g_sigma_fit->SetPoint(i, X_CENT_BINS[i+1]-0.5*(X_CENT_BINS[i+1]-X_CENT_BINS[i]), fit_p0_full[i]);
+        g_sigma_fit->SetPointError(i, 0, fit_p0err_full[i]);
+        g_sigma_fit_sys->SetPoint(i, X_CENT_BINS[i+1]-0.5*(X_CENT_BINS[i+1]-X_CENT_BINS[i]), fit_p0_full[i]);
+        // asymmetric errors
+        // if (fit_p0_sys[i] > 0) {
+        //     g_sigma_fit_sys->SetPointError(i, 0, fit_p0err_full[i], 0 ); // positive error
+        // } else {
+            g_sigma_fit_sys->SetPointEXhigh(i, (X_CENT_BINS[i+1] - X_CENT_BINS[i]) / 2.0); // half bin width
+            g_sigma_fit_sys->SetPointEXlow(i, (X_CENT_BINS[i+1] - X_CENT_BINS[i]) / 2.0); // half bin width
+            g_sigma_fit_sys->SetPointEYlow(i, fit_p0_sys[i]); // no negative error
+            g_sigma_fit_sys->SetPointEYhigh(i, fit_p0_sys[i]); // no negative error
+        // }
+    }
+    g_sigma_fit->GetXaxis()->SetNdivisions(505);
+    g_sigma_fit->GetYaxis()->SetNdivisions(505);
+    g_sigma_fit->GetXaxis()->SetTitle("Centrality [%]");
+    g_sigma_fit->GetYaxis()->SetTitle("k_{fit}");
+    g_sigma_fit->GetXaxis()->SetRangeUser(-3, 85);
+    g_sigma_fit->GetYaxis()->SetRangeUser(0.5, 0.6);
+    g_sigma_fit->SetMarkerStyle(20);
+    g_sigma_fit->SetMarkerSize(1.2);
+    g_sigma_fit->SetLineColor(kBlack);
+    g_sigma_fit->SetMarkerColor(kBlack);
+    
+    // g_sigma_fit_sys->SetFillColorAlpha(kBlue-6, 0.8); // semi-transparent fill
+    g_sigma_fit_sys->SetFillColor(kBlue-6); // solid fill
+    g_sigma_fit_sys->SetMarkerStyle(20);
+    g_sigma_fit_sys->SetMarkerSize(1.2); // hide the markers for the band
+    g_sigma_fit_sys->GetXaxis()->SetNdivisions(505);
+    g_sigma_fit_sys->GetYaxis()->SetNdivisions(505);
+    g_sigma_fit_sys->SetFillStyle(3001); // 3001 is a filled band style
+    g_sigma_fit_sys->GetXaxis()->SetTitle("Centrality [%]");
+    g_sigma_fit_sys->GetYaxis()->SetTitle("k_{fit}");
+    g_sigma_fit_sys->GetXaxis()->SetRangeUser(-3, 85);
+    g_sigma_fit_sys->GetYaxis()->SetRangeUser(0.5, 0.6);
+    // make errors a bar
+    // g_sigma_fit_sys->SetFillColor(kBlack);
+
+    g_sigma_fit_sys->Draw("AP2"); // draw as a filled band
+    g_sigma_fit->Draw("PESAME"); // draw as a filled band
+
+    // g_sigma_fit->Draw(""); // draw the points on top of the band
+    tx = 0.19;
+    ty_start = 0.25;
+    for ( auto tag : tags ) {
+        tex->DrawLatex(0.19, ty_start, tag.c_str());
+        ty_start -= 0.06;
+    }
+    c->SaveAs(Form("%s/sigma_fits_sys.pdf", outdir.c_str()));
+    c->SaveAs(Form("%s/sigma_fits_sys.png", outdir.c_str()));
+
+    // TFile * f_out = new TFile(Form("%s/sigma_fits.root", outdir.c_str()), "RECREATE");
+    // g_sigma_fit->Write("g_sigma_fit");
+    // f_out->Close();
+
+
+    return;
+
+}
+
 
 void WindowFits(const std::string input_file, const std::string & prefix)
 {
@@ -3293,7 +3484,7 @@ void WindowFits(const std::string input_file, const std::string & prefix)
             g->SetMarkerColor(kBlack);
 
         }
-        g_sigma[i]->GetYaxis()->SetTitle("#bar{#sigma}/#bar{#sigma}^{1x1}");
+        g_sigma[i]->GetYaxis()->SetTitle("#bar{#sigma} / #bar{#sigma}^{1x1}");
         g_avg_et[i]->GetYaxis()->SetTitle("#bar{#LT E_{T} #GT} [GeV]");
         g_nwindows[i]->GetYaxis()->SetTitle("#bar{N}_{windows}");
         g_avg_et2[i]->GetYaxis()->SetTitle("#bar{#LT E_{T}^{2} #GT} [GeV^{2}]");
@@ -3365,7 +3556,7 @@ void WindowFits(const std::string input_file, const std::string & prefix)
     std::vector<std::string> tags = {sPHENIX_Tag, DataType_Tag};
 
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-        std::string cent_title = Form("%d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]));
+        std::string cent_title = Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]));
         c = new TCanvas("c", "c", 800, 600);
         gPad->SetLeftMargin(0.15);
         gPad->SetRightMargin(0.15);
@@ -3393,18 +3584,19 @@ void WindowFits(const std::string input_file, const std::string & prefix)
             tex->DrawLatex(tx, ty, tag.c_str());
             ty -= 0.06;
         }
-
-        tex->DrawLatex(tx, ty, cent_title.c_str());
         
+        tex->DrawLatex(tx, ty, cent_title.c_str());
+        ty -= 0.06;
         leg = new TLegend(0.2,0.7,0.55,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         // leg->AddEntry(fit_sigma, Form("Fit: #bar{#sigma} = %0.2f#times(A^{nxm}/A^{1x1})^{%0.2f}", fit_p0_full[i], fit_p1_full[i]), "l");
 
-        tex->DrawLatex(tx_f, ty_f_start, Form("k_{fit} = %0.2f", fit_p0_full[i]));
-        tex->DrawLatex(tx_f, ty_f_start-0.05, Form("#chi^{2}/ndf = %0.2f", fit_chi2_full[i]/9));
+        tex->DrawLatex(tx, ty, Form("k_{fit} = %0.2f", fit_p0_full[i]));
+        // tex->DrawLatex(tx_f, ty_f_start-0.05, Form("#chi^{2}/ndf = %0.2f", fit_chi2_full[i]/9));
 
         c->SaveAs(Form("%s/sigma_fit_cent%d.pdf", outdir.c_str(), i));
+        c->SaveAs(Form("%s/sigma_fit_cent%d.png", outdir.c_str(), i));
         
         delete c;
     }
@@ -3492,11 +3684,23 @@ void WindowFits(const std::string input_file, const std::string & prefix)
     gPad->SetBottomMargin(0.15);
     gPad->SetTopMargin(0.05);
     // set reverse x-axis
+
+  
     
     TGraphErrors * g_sigma_fit = new TGraphErrors(N_X_CENT_BINS);
+    std::vector<float> x_centers{};
+    std::vector<float> x_errs{};
+    std::vector<float> y_vals{};
+    std::vector<float> y_stat_errs{};
+
+
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
         g_sigma_fit->SetPoint(i, X_CENT_BINS[i+1]-0.5*(X_CENT_BINS[i+1]-X_CENT_BINS[i]), fit_p0_full[i]);
-        g_sigma_fit->SetPointError(i, 0, 0);
+        x_centers.push_back(X_CENT_BINS[i+1]-0.5*(X_CENT_BINS[i+1]-X_CENT_BINS[i]));
+        x_errs.push_back(0.5 * (X_CENT_BINS[i+1] - X_CENT_BINS[i])); // half width of the bin
+        y_vals.push_back(fit_p0_full[i]);
+        y_stat_errs.push_back(fit_p0err_full[i]);
+        g_sigma_fit->SetPointError(i, 0, fit_p0err_full[i]);
     }
     g_sigma_fit->GetXaxis()->SetNdivisions(505);
     g_sigma_fit->GetYaxis()->SetNdivisions(505);
@@ -3516,76 +3720,14 @@ void WindowFits(const std::string input_file, const std::string & prefix)
         ty_start -= 0.06;
     }
     c->SaveAs(Form("%s/sigma_fits.pdf", outdir.c_str()));
+    c->SaveAs(Form("%s/sigma_fits.png", outdir.c_str()));
 
     TFile * f_out = new TFile(Form("%s/sigma_fits.root", outdir.c_str()), "RECREATE");
     g_sigma_fit->Write("g_sigma_fit");
     f_out->Close();
 
 
-    // leg = new TLegend(0.4,0.18,0.89,0.5);
-    // leg->SetBorderSize(0);
-    // leg->SetFillStyle(0);
-    // leg->SetNColumns(2);
-    // for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    //     std::string cent_title = Form("%d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]));
-  
-    //     g_sigma[i]->SetMarkerColor(COLORS[i]);
-    //     g_sigma[i]->SetLineColor(COLORS[i]);
-    //     g_sigma[i]->SetMarkerStyle(MARKERS[i]);
-    //     if ( i == 0 ) {
-    //         g_sigma[i]->Draw("AP");
-    //         g_sigma[i]->GetXaxis()->SetRangeUser(0.9, 1.1*g_sigma[i]->GetX()[g_sigma[i]->GetN()-1]);
-    //         g_sigma[i]->GetYaxis()->SetRangeUser(0.9, 10*(N_X_CENT_BINS-1)*g_sigma[i]->GetY()[g_sigma[i]->GetN()-1]);
-       
-    //         // g_sigma[i]->Draw("P");
-    //     } else {
-    //         for ( int j = 0; j < k_window_array_size; ++j ) {
-    //             g_sigma[i]->SetPoint(j, g_sigma[i]->GetX()[j], 10*i*g_sigma[i]->GetY()[j]);
-    //             g_sigma[i]->SetPointError(j, 0, g_sigma[i]->GetEY()[j]);
-    //         }
-    //         g_sigma[i]->Draw("P SAME");
-    //     }
-        
-    //     fit_sigma = new TF1("fit_sigma", "[1]*x^[0]", fit_x0_full[i], fit_xf_full[i]);
-    //     fit_sigma->SetParameter(0,fit_p0_full[i]);
-    //     // fit_sigma->SetParameter(1,10*i);
-    //     float p1 = 1;
-    //     if ( i > 0 ) { p1 = 10*i; }
-    //     fit_sigma->SetParameter(1,p1);
-    //     fit_sigma->SetLineColor(COLORS[i]);
-    //     fit_sigma->SetLineStyle(i+1);
-    //     fit_sigma->SetLineWidth(2);
-    //     fit_sigma->Draw("SAME");
-
-    //     float ty = ty_start;
-    //     for ( auto tag : tags ) {
-    //         tex->DrawLatex(tx, ty, tag.c_str());
-    //         ty -= 0.05;
-    //     }
-
-    //     // tex->DrawLatex(tx, ty, cent_title.c_str());
-        
-  
-    //     leg->AddEntry(g_sigma[i], Form("%s", cent_title.c_str()), "p");
-    //     leg->AddEntry(fit_sigma, Form("k = %0.2f#pm %0.0e", fit_p0_full[i], fit_p0err_full[i]), "l");
-
-    //     // leg->AddEntry(fit_sigma, Form("Fit: #bar{#sigma} = %0.2f#times(A^{nxm}/A^{1x1})^{%0.2f}", fit_p0_full[i], fit_p1_full[i]), "l");
-
-    //     // tex->DrawLatex(tx_f, ty_f_start, Form("k = %0.2f#pm %0.0e", fit_p1_full[i], fit_p1err_full[i]));
-
-       
-        
-    //     // delete c;
-    // }
-    // leg->Draw("SAME");
-    // c->SaveAs(Form("%s/sigma_fit_all.pdf", outdir.c_str()));
-
-    // f->Close();
-
     return;
-
-
-
 
 }
 
@@ -3973,7 +4115,7 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         for ( auto h1 : h1s ) {
             h1->GetXaxis()->SetNdivisions(505);
             h1->GetYaxis()->SetNdivisions(505);
-            h1->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
+            h1->GetXaxis()->SetTitle("#delta E_{T,Uncorr.} [GeV]");
             h1->GetYaxis()->SetTitle("Probability Density [A.U.]");
             h1->Scale(1./h1->Integral());
         }
@@ -4013,6 +4155,22 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
             h1->SetLineColor(colors[2]);
             h1->SetMarkerColor(colors[2]);
         }
+
+
+        // // scale (x axis - mean)/mean
+        // for (auto h1 : h1s_area) {
+        //     float mean = h1->GetMean();
+        //     float rms = h1->GetRMS();
+        //     for ( int j = 0; j < h1->GetNbinsX(); ++j ) {
+        //         float x = h1->GetBinCenter(j+1);
+        //         float y = h1->GetBinContent(j+1);
+        //         float yerr = h1->GetBinError(j+1);
+        //         if ( mean != 0 ) {
+        //             h1->SetBinContent(j+1, y/(x/mean));
+        //             h1->SetBinError(j+1, yerr/(x/mean));
+        //         }
+        //     }
+        // }
 
 
     }
@@ -4105,6 +4263,9 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         TH1F * h1_a_probe = (TH1F*)h1_area_probe[i]->Clone(Form("h1_a_probe_%d", i));
         TH1F * h1_a_embed = (TH1F*)h1_area_embed[i]->Clone(Form("h1_a_embed_%d", i));
 
+      
+
+
         float mean_a_basic = h1_a_basic->GetMean();
         float mean_a_random = h1_a_random->GetMean();
         float mean_a_probe = h1_a_probe->GetMean();
@@ -4191,13 +4352,13 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         fit_gamma2->SetParameter(0, a_a_basic);
         fit_gamma2->SetParameter(1, ab_a_basic);
         fit_gamma2->SetParameter(2, ap_a_basic);
-        // std::cout << "m = " << m << ", s = " << s << std::endl;
+        std::cout << "m = " << m << ", s = " << s << std::endl;
         // h1_a_random->Fit(fit_gamma2, "LQR", "", m-3*s, m+3*s);
         a_a_basic = fit_gamma2->GetParameter(0);
         ab_a_basic = fit_gamma2->GetParameter(1);
         ap_a_basic = fit_gamma2->GetParameter(2);
         float chi2overndf = fit_gamma2->GetChisquare()/fit_gamma2->GetNDF();
-        //  std::cout << "m = " << m << ", s = " << s << std::endl;
+        std::cout << "chi2/ndf = " << chi2overndf << std::endl;
 
         c = new TCanvas("c", "c", 800, 800);
 
@@ -4221,43 +4382,40 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
         // leg = new TLegend(0.15,0.8,0.4,0.92);
-        leg = new TLegend(0.6,0.7,0.8,0.92);
+        leg = new TLegend(0.17,0.65,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
+        leg->SetTextSize(0.035);
 
         TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
         leg2->SetBorderSize(0);
         leg2->SetFillStyle(0);
         leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
+        leg2->SetTextSize(0.035);
 
+       
         h1_area_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_area_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_area_basic[i]->GetYaxis()->SetRangeUser(1e-4, 2e0);
+        h1_area_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_area_basic[i]->SetMarkerSize(1.5);
         h1_area_basic[i]->SetMarkerColor(kAzure-2);
         h1_area_basic[i]->SetLineColor(kAzure-2);
-        h1_area_basic[i]->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
         h1_area_basic[i]->Draw("P");
-        // leg->AddEntry(h1_area_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-        leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
+        leg->AddEntry(h1_area_basic[i], Form("Basic: #mu=%0.2f, #sigma = %0.2f", mean_a_basic, rms_a_basic), "pe");
 
         fit_gaus->SetLineColor(kAzure-2);
         fit_gaus->SetLineStyle(2);
         fit_gaus->SetLineWidth(2);
         fit_gaus->SetParameter(1, mu_lhs_a_basic);
         fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-        // fit_gaus->Draw("SAME");
+        fit_gaus->Draw("SAME");
       
         h1_area_random[i]->SetMarkerSize(1.5);
         h1_area_random[i]->SetMarkerColor(kRed);
         h1_area_random[i]->SetLineColor(kRed);
-        h1_area_random[i]->Draw("P SAME");
-        // leg->AddEntry(h1_area_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-        leg->AddEntry(h1_area_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(fit_gaus2, "Gaussian Fit", "l");
+        h1_area_random[i]->Draw(" P SAME");
+        leg->AddEntry(h1_area_random[i], Form("Randomized #eta#phi: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
 
         fit_gaus2->SetParameter(1, mu_lhs_a_random);
         fit_gaus2->SetParameter(2, sigma_lhs_a_random);
@@ -4270,18 +4428,16 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         h1_a_probe->SetMarkerColor(kGreen+2);
         h1_a_probe->SetLineColor(kGreen+2);
         h1_a_probe->Draw("P SAME");
-        // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
+        leg->AddEntry(h1_a_probe, Form("E_{T}^{probe} = 30 GeV: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
 
         h1_a_embed->SetMarkerSize(1.5);
         h1_a_embed->SetMarkerColor(kBlack);
         h1_a_embed->SetLineColor(kBlack);
         h1_a_embed->Draw("SAME");
-        // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-        leg->AddEntry(h1_a_embed, "Embed", "pe");
+        leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f, #sigma = %0.2f", mean_a_embed, rms_a_embed), "pe");
 
-        
-        // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
+        leg->AddEntry(fit_gaus, Form("#mu_{lhs} = %0.2f, #sigma_{lhs} = %0.2f", mu_lhs_a_basic, sigma_lhs_a_basic), "l");
+        leg->AddEntry(fit_gaus2, Form("#mu_{lhs} = %0.2f, #sigma_{lhs} = %0.2f", mu_lhs_a_random, sigma_lhs_a_random), "l");
 
         if(do_gamma) {
             fit_gamma2->SetLineColor(kBlack);
@@ -4294,13 +4450,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
             leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
         }
    
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "#it{Area Method}"};
+        std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Area"};
         TLatex * tex = new TLatex();
         tex->SetNDC();
-        // tex->SetTextAlign(12); // center alignment
-        tex->SetTextSize(0.04);
+        tex->SetTextSize(0.035);
         float tx = 0.19;
-        float ty_start = 0.87;
+        float ty_start = 0.6;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.05;
@@ -4308,7 +4463,6 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         leg->Draw("SAME");
         // leg2->Draw("SAME");
         c->SaveAs(Form("%s/area_basic_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d.png", outdir.c_str(), i));
 
         delete c;
         delete leg;
@@ -4316,215 +4470,13 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         delete fit_gamma;
     }
 
-    // for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-
-    //     TH1F * h1_a_basic = (TH1F*)h1_mult_basic[i]->Clone(Form("h1_a_basic_%d", i));
-    //     TH1F * h1_a_random = (TH1F*)h1_mult_random[i]->Clone(Form("h1_a_random_%d", i));
-    //     TH1F * h1_a_probe = (TH1F*)h1_mult_probe[i]->Clone(Form("h1_a_probe_%d", i));
-    //     TH1F * h1_a_embed = (TH1F*)h1_mult_embed[i]->Clone(Form("h1_a_embed_%d", i));
-      
-    //     float mean_a_basic = h1_a_basic->GetMean();
-    //     float mean_a_random = h1_a_random->GetMean();
-    //     float mean_a_probe = h1_a_probe->GetMean();
-    //     float mean_a_embed = h1_a_embed->GetMean();
-    //     float rms_a_basic = h1_a_basic->GetRMS();
-    //     float rms_a_random = h1_a_random->GetRMS();
-    //     float rms_a_probe = h1_a_probe->GetRMS();
-    //     float rms_a_embed = h1_a_embed->GetRMS();
-    //     float mean_a_basic_err = h1_a_basic->GetMeanError();
-    //     float mean_a_random_err = h1_a_random->GetMeanError();
-    //     float mean_a_probe_err = h1_a_probe->GetMeanError();
-    //     float mean_a_embed_err = h1_a_embed->GetMeanError();
-    //     float rms_a_basic_err = h1_a_basic->GetRMSError();
-    //     float rms_a_random_err = h1_a_random->GetRMSError();
-    //     float rms_a_probe_err = h1_a_probe->GetRMSError();
-    //     float rms_a_embed_err = h1_a_embed->GetRMSError();
-
-        
-
-    //     TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
-    //     h1_a_basic->Fit(fit_gaus, "RQ", "", -40, 0);
-    //     h1_a_basic->Fit(fit_gaus, "RQ", "", fit_gaus->GetParameter(1)-3*fit_gaus->GetParameter(2), fit_gaus->GetParameter(1)+0.5*fit_gaus->GetParameter(2));
-    //     float mu_lhs_a_basic = fit_gaus->GetParameter(1);
-    //     float sigma_lhs_a_basic = fit_gaus->GetParameter(2);
-    //     float mu_lhs_a_basic_err = fit_gaus->GetParError(1);
-    //     float sigma_lhs_a_basic_err = fit_gaus->GetParError(2);
-
-    //     TF1 * fit_gaus2 = new TF1("fit_gaus2", "gaus", -40, 40);
-    //     h1_a_random->Fit(fit_gaus2, "RQ", "", -40, 0);
-    //     h1_a_random->Fit(fit_gaus2, "RQ", "", fit_gaus2->GetParameter(1)-3*fit_gaus2->GetParameter(2), fit_gaus2->GetParameter(1)+0.5*fit_gaus2->GetParameter(2));
-    //     float mu_lhs_a_random = fit_gaus2->GetParameter(1);
-    //     float sigma_lhs_a_random = fit_gaus2->GetParameter(2);
-    //     float mu_lhs_a_random_err = fit_gaus2->GetParError(1);
-    //     float sigma_lhs_a_random_err = fit_gaus2->GetParError(2);
-
-
-    //     // fill vectors
-    //     mu_lhs_mult_basic.push_back(mu_lhs_a_basic);
-    //     mu_lhs_mult_random.push_back(mu_lhs_a_random);
-    //     sigma_lhs_mult_basic.push_back(sigma_lhs_a_basic);
-    //     sigma_lhs_mult_random.push_back(sigma_lhs_a_random);
-    //     mu_lhs_mult_basic_err.push_back(mu_lhs_a_basic_err);
-    //     mu_lhs_mult_random_err.push_back(mu_lhs_a_random_err);
-    //     sigma_lhs_mult_basic_err.push_back(sigma_lhs_a_basic_err);
-    //     sigma_lhs_mult_random_err.push_back(sigma_lhs_a_random_err);
-
-    //     mu_mult_basic.push_back(mean_a_basic);
-    //     mu_mult_random.push_back(mean_a_random);
-    //     mu_mult_probe.push_back(mean_a_probe);
-    //     mu_mult_embed.push_back(mean_a_embed);
-    //     sigma_mult_basic.push_back(rms_a_basic);
-    //     sigma_mult_random.push_back(rms_a_random);
-    //     sigma_mult_probe.push_back(rms_a_probe);
-    //     sigma_mult_embed.push_back(rms_a_embed);
-    //     mu_mult_basic_err.push_back(mean_a_basic_err);
-    //     mu_mult_random_err.push_back(mean_a_random_err);
-    //     mu_mult_probe_err.push_back(mean_a_probe_err);
-    //     mu_mult_embed_err.push_back(mean_a_embed_err);
-    //     sigma_mult_basic_err.push_back(rms_a_basic_err);
-    //     sigma_mult_random_err.push_back(rms_a_random_err);
-    //     sigma_mult_probe_err.push_back(rms_a_probe_err);
-    //     sigma_mult_embed_err.push_back(rms_a_embed_err);
-
-      
-
-
-      
-    //     float ap0 =( mean_a_basic*mean_a_basic);
-    //     float ab0 = ap0/mean_a_basic;
-      
-    //     TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 30, 3);
-      
-    //     fit_gamma->SetParNames("A","a_b","a_p");
-    //     fit_gamma->SetParameters(0.22, 1.18, 120);
-    //     fit_gamma->SetParLimits(0, 0.2, 1.2);
-    //     fit_gamma->SetParLimits(1, 1, 2.5);
-    //     fit_gamma->SetParLimits(2, 50, 120);
-    //     h1_a_random->Fit("fit_gamma", "QR", "", mean_a_basic-3*rms_a_basic, mean_a_basic+3*rms_a_basic);
-    //     float a_a_basic = fit_gamma->GetParameter(0);
-    //     float ab_a_basic = fit_gamma->GetParameter(1);
-    //     float ap_a_basic = fit_gamma->GetParameter(2);
-    //     float m = ap_a_basic/ab_a_basic;
-    //     float s = sqrt(ap_a_basic)/ab_a_basic;
-      
-    //     TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
-    //     fit_gamma2->SetParameter(0, a_a_basic);
-    //     fit_gamma2->SetParameter(1, ab_a_basic);
-    //     fit_gamma2->SetParameter(2, ap_a_basic);
-    //     // std::cout << "m = " << m << ", s = " << s << std::endl;
-    //     // fit_gamma->SetParLimits(0, 
-    //     h1_a_random->Fit(fit_gamma2, "QR", "", m-3*s, m+3*s);
-    //     a_a_basic = fit_gamma2->GetParameter(0);
-    //     ab_a_basic = fit_gamma2->GetParameter(1);
-    //     ap_a_basic = fit_gamma2->GetParameter(2);
-      
-    //     c = new TCanvas("c", "c", 800, 800);
-      
-    //     gPad->SetLeftMargin(0.15);
-    //     gPad->SetRightMargin(0.05);
-    //     gPad->SetBottomMargin(0.15);
-    //     gPad->SetTopMargin(0.05);
-    //     gPad->SetLogy();
-    //     // leg = new TLegend(0.15,0.8,0.4,0.92);
-    //     leg = new TLegend(0.17,0.65,0.4,0.92);
-    //     leg->SetBorderSize(0);
-    //     leg->SetFillStyle(0);
-    //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
-      
-    //     // TLegend * leg2 = new TLegend(0.6,0.8,0.8,0.92);
-    //     TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
-    //     leg2->SetBorderSize(0);
-    //     leg2->SetFillStyle(0);
-    //     leg2->SetNColumns(1);
-    //     leg2->SetTextSize(0.04);
-      
-       
-    //     h1_mult_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_mult_basic[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_mult_basic[i]->SetMarkerSize(1.5);
-    //     h1_mult_basic[i]->SetMarkerColor(kAzure-2);
-    //     h1_mult_basic[i]->SetLineColor(kAzure-2);
-    //     h1_mult_basic[i]->Draw("P");
-    //     // leg->AddEntry(h1_mult_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-    //     leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
-      
-    //     fit_gaus->SetLineColor(kAzure-2);
-    //     fit_gaus->SetLineStyle(2);
-    //     fit_gaus->SetLineWidth(2);
-    //     fit_gaus->SetParameter(1, mu_lhs_a_basic);
-    //     fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-    //     fit_gaus->Draw("SAME");
-      
-    //     h1_mult_random[i]->SetMarkerSize(1.5);
-    //     h1_mult_random[i]->SetMarkerColor(kRed);
-    //     h1_mult_random[i]->SetLineColor(kRed);
-    //     h1_mult_random[i]->Draw(" P SAME");
-    //     // leg->AddEntry(h1_mult_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV" , mean_a_random, rms_a_random), "pe");
-    //     leg->AddEntry(h1_area_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-      
-    //     fit_gaus2->SetParameter(1, mu_lhs_a_random);
-    //     fit_gaus2->SetParameter(2, sigma_lhs_a_random);
-    //     fit_gaus2->SetLineColor(kRed);
-    //     fit_gaus2->SetLineStyle(3);
-    //     fit_gaus2->SetLineWidth(2);
-    //     fit_gaus2->Draw("SAME");
-        
-    //     h1_a_probe->SetMarkerSize(1.5);
-    //     h1_a_probe->SetMarkerColor(kGreen+2);
-    //     h1_a_probe->SetLineColor(kGreen+2);
-    //     h1_a_probe->Draw("P SAME");
-    //     // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-    //     leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-      
-    //     h1_a_embed->SetMarkerSize(1.5);
-    //     h1_a_embed->SetMarkerColor(kBlack);
-    //     h1_a_embed->SetLineColor(kBlack);
-    //     h1_a_embed->Draw("SAME");
-    //     // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-    //     leg->AddEntry(h1_a_embed, "Embed", "pe");
-
-    //     // leg->AddEntry(fit_gaus, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_basic, sigma_lhs_a_basic), "l");
-    //     // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
-
-    //     if(do_gamma) {
-    //         fit_gamma2->SetLineColor(kBlack);
-    //         fit_gamma2->SetParameter(0, a_a_basic);
-    //         fit_gamma2->SetParameter(1, ab_a_basic);
-    //         fit_gamma2->SetParameter(2, ap_a_basic);
-    //         fit_gamma2->SetLineStyle(1);
-    //         fit_gamma2->SetLineWidth(2);
-    //         fit_gamma2->Draw("SAME");
-    //         leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
-    //     }
-    //     std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Multiplicity"};
-    //     TLatex * tex = new TLatex();
-    //     tex->SetNDC();
-    //     tex->SetTextSize(0.04);
-    //     float tx = 0.19;
-    //     float ty_start = 0.6;
-    //     for ( auto tag : tags ) {
-    //         tex->DrawLatex(tx, ty_start, tag.c_str());
-    //         ty_start -= 0.05;
-    //     }
-    //     leg->Draw("SAME");
-    //     // leg2->Draw("SAME");
-    //     c->SaveAs(Form("%s/mult_basic_%d.pdf", outdir.c_str(), i));
-      
-    //     delete c;
-    //     delete leg;
-    //     delete fit_gaus;
-    //     delete fit_gamma;
-    // }
-
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
 
         TH1F * h1_a_basic = (TH1F*)h1_mult_basic[i]->Clone(Form("h1_a_basic_%d", i));
         TH1F * h1_a_random = (TH1F*)h1_mult_random[i]->Clone(Form("h1_a_random_%d", i));
         TH1F * h1_a_probe = (TH1F*)h1_mult_probe[i]->Clone(Form("h1_a_probe_%d", i));
         TH1F * h1_a_embed = (TH1F*)h1_mult_embed[i]->Clone(Form("h1_a_embed_%d", i));
-
+      
         float mean_a_basic = h1_a_basic->GetMean();
         float mean_a_random = h1_a_random->GetMean();
         float mean_a_probe = h1_a_probe->GetMean();
@@ -4542,8 +4494,6 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         float rms_a_probe_err = h1_a_probe->GetRMSError();
         float rms_a_embed_err = h1_a_embed->GetRMSError();
 
-       
-        
         
 
         TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
@@ -4590,95 +4540,82 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         sigma_mult_probe_err.push_back(rms_a_probe_err);
         sigma_mult_embed_err.push_back(rms_a_embed_err);
 
-   
-        // float ap0 =( mean_a_basic*mean_a_basic);
-        // float ab0 = ap0/mean_a_basic;
+      
 
-        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 50, 3);
+
+      
+        float ap0 =( mean_a_basic*mean_a_basic);
+        float ab0 = ap0/mean_a_basic;
+      
+        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 30, 3);
+      
         fit_gamma->SetParNames("A","a_b","a_p");
-        fit_gamma->SetParameters(0.1, 1.18, 120);
-        // fit_gamma->SetParLimits(0, 0.2, 1.2);
-        // fit_gamma->SetParLimits(1, 1, 2.5);
-        // fit_gamma->SetParLimits(2, 50, 130);
-        h1_a_random->Fit("fit_gamma", "LM+QR", "", 5, 50);
+        fit_gamma->SetParameters(0.22, 1.18, 120);
+        fit_gamma->SetParLimits(0, 0.2, 1.2);
+        fit_gamma->SetParLimits(1, 1, 2.5);
+        fit_gamma->SetParLimits(2, 50, 120);
+        h1_a_probe->Fit("fit_gamma", "QR", "", mean_a_basic-3*rms_a_basic, mean_a_basic+3*rms_a_basic);
         float a_a_basic = fit_gamma->GetParameter(0);
         float ab_a_basic = fit_gamma->GetParameter(1);
         float ap_a_basic = fit_gamma->GetParameter(2);
         float m = ap_a_basic/ab_a_basic;
         float s = sqrt(ap_a_basic)/ab_a_basic;
-    
+      
         TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
         fit_gamma2->SetParameter(0, a_a_basic);
         fit_gamma2->SetParameter(1, ab_a_basic);
         fit_gamma2->SetParameter(2, ap_a_basic);
-        // std::cout << "m = " << m << ", s = " << s << std::endl;
-        // h1_a_random->Fit(fit_gamma2, "LQR", "", m-3*s, m+3*s);
+        std::cout << "m = " << m << ", s = " << s << std::endl;
+        // fit_gamma->SetParLimits(0, 
+        h1_a_random->Fit(fit_gamma2, "QR", "", m-3*s, m+3*s);
         a_a_basic = fit_gamma2->GetParameter(0);
         ab_a_basic = fit_gamma2->GetParameter(1);
         ap_a_basic = fit_gamma2->GetParameter(2);
-        float chi2overndf = fit_gamma2->GetChisquare()/fit_gamma2->GetNDF();
-        //  std::cout << "m = " << m << ", s = " << s << std::endl;
-
+      
         c = new TCanvas("c", "c", 800, 800);
-
-        if(i == 0) {
-            // c->SetLogy();
-            TFile * f = new TFile(Form("%s/fit_mult_cent0_results.root", outdir.c_str()), "RECREATE");
-            h1_a_basic->Write();
-            h1_a_random->Write();
-            h1_a_probe->Write();
-            h1_a_embed->Write();
-            fit_gaus->Write();
-            fit_gaus2->Write();
-            fit_gamma->Write();
-            f->Close();
-            delete f;
-        }
-
+      
         gPad->SetLeftMargin(0.15);
         gPad->SetRightMargin(0.05);
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
         // leg = new TLegend(0.15,0.8,0.4,0.92);
-        leg = new TLegend(0.6,0.7,0.8,0.92);
+        leg = new TLegend(0.17,0.65,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
-
+        leg->SetTextSize(0.035);
+      
+        // TLegend * leg2 = new TLegend(0.6,0.8,0.8,0.92);
         TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
         leg2->SetBorderSize(0);
         leg2->SetFillStyle(0);
         leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
-
+        leg2->SetTextSize(0.035);
+      
+       
         h1_mult_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_mult_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 2e0);
+        h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_mult_basic[i]->SetMarkerSize(1.5);
         h1_mult_basic[i]->SetMarkerColor(kAzure-2);
         h1_mult_basic[i]->SetLineColor(kAzure-2);
-        h1_mult_basic[i]->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
         h1_mult_basic[i]->Draw("P");
-        // leg->AddEntry(h1_mult_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-        leg->AddEntry(h1_mult_basic[i], "Basic Cones", "pe");
-
+        leg->AddEntry(h1_mult_basic[i], Form("Basic: #mu=%0.2f, #sigma = %0.2f", mean_a_basic, rms_a_basic), "pe");
+      
         fit_gaus->SetLineColor(kAzure-2);
         fit_gaus->SetLineStyle(2);
         fit_gaus->SetLineWidth(2);
         fit_gaus->SetParameter(1, mu_lhs_a_basic);
         fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-        // fit_gaus->Draw("SAME");
+        fit_gaus->Draw("SAME");
       
         h1_mult_random[i]->SetMarkerSize(1.5);
         h1_mult_random[i]->SetMarkerColor(kRed);
         h1_mult_random[i]->SetLineColor(kRed);
         h1_mult_random[i]->Draw(" P SAME");
-        // leg->AddEntry(h1_mult_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-        leg->AddEntry(h1_mult_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(fit_gaus2, "Gaussian Fit", "l");
-
+        leg->AddEntry(h1_mult_random[i], Form("Randomized #eta#phi: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
+      
         fit_gaus2->SetParameter(1, mu_lhs_a_random);
         fit_gaus2->SetParameter(2, sigma_lhs_a_random);
         fit_gaus2->SetLineColor(kRed);
@@ -4690,18 +4627,16 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         h1_a_probe->SetMarkerColor(kGreen+2);
         h1_a_probe->SetLineColor(kGreen+2);
         h1_a_probe->Draw("P SAME");
-        // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-
+        leg->AddEntry(h1_a_probe, Form("E_{T}^{probe} = 30 GeV: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
+      
         h1_a_embed->SetMarkerSize(1.5);
         h1_a_embed->SetMarkerColor(kBlack);
         h1_a_embed->SetLineColor(kBlack);
         h1_a_embed->Draw("SAME");
-        // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-        leg->AddEntry(h1_a_embed, "Embed", "pe");
+        leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f, #sigma = %0.2f", mean_a_embed, rms_a_embed), "pe");
 
-        
-        // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
+        leg->AddEntry(fit_gaus, Form("#mu_{lhs} = %0.2f, #sigma_{lhs} = %0.2f", mu_lhs_a_basic, sigma_lhs_a_basic), "l");
+        leg->AddEntry(fit_gaus2, Form("#mu_{lhs} = %0.2f, #sigma_{lhs} = %0.2f", mu_lhs_a_random, sigma_lhs_a_random), "l");
 
         if(do_gamma) {
             fit_gamma2->SetLineColor(kBlack);
@@ -4713,13 +4648,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
             fit_gamma2->Draw("SAME");
             leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
         }
-   
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "#it{Multiplicity Method}"};
+        std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Multiplicity"};
         TLatex * tex = new TLatex();
         tex->SetNDC();
-        tex->SetTextSize(0.04);
+        tex->SetTextSize(0.035);
         float tx = 0.19;
-        float ty_start = 0.87;
+        float ty_start = 0.6;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.05;
@@ -4727,212 +4661,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         leg->Draw("SAME");
         // leg2->Draw("SAME");
         c->SaveAs(Form("%s/mult_basic_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/mult_basic_%d.png", outdir.c_str(), i));
-
+      
         delete c;
         delete leg;
         delete fit_gaus;
         delete fit_gamma;
     }
-
-    // for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-
-    //     TH1F * h1_a_basic = (TH1F*)h1_sub1_basic[i]->Clone(Form("h1_a_basic_%d", i));
-    //     TH1F * h1_a_random = (TH1F*)h1_sub1_random[i]->Clone(Form("h1_a_random_%d", i));
-    //     TH1F * h1_a_probe = (TH1F*)h1_sub1_probe[i]->Clone(Form("h1_a_probe_%d", i));
-    //     TH1F * h1_a_embed = (TH1F*)h1_sub1_embed[i]->Clone(Form("h1_a_embed_%d", i));
-      
-    //     float mean_a_basic = h1_a_basic->GetMean();
-    //     float mean_a_random = h1_a_random->GetMean();
-    //     float mean_a_probe = h1_a_probe->GetMean();
-    //     float mean_a_embed = h1_a_embed->GetMean();
-    //     float rms_a_basic = h1_a_basic->GetRMS();
-    //     float rms_a_random = h1_a_random->GetRMS();
-    //     float rms_a_probe = h1_a_probe->GetRMS();
-    //     float rms_a_embed = h1_a_embed->GetRMS();
-    //     float mean_a_basic_err = h1_a_basic->GetMeanError();
-    //     float mean_a_random_err = h1_a_random->GetMeanError();
-    //     float mean_a_probe_err = h1_a_probe->GetMeanError();
-    //     float mean_a_embed_err = h1_a_embed->GetMeanError();
-    //     float rms_a_basic_err = h1_a_basic->GetRMSError();
-    //     float rms_a_random_err = h1_a_random->GetRMSError();
-    //     float rms_a_probe_err = h1_a_probe->GetRMSError();
-    //     float rms_a_embed_err = h1_a_embed->GetRMSError();
-
-        
-
-    //     TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
-    //     h1_a_basic->Fit(fit_gaus, "RQ", "", -40, 0);
-    //     h1_a_basic->Fit(fit_gaus, "RQ", "", fit_gaus->GetParameter(1)-3*fit_gaus->GetParameter(2), fit_gaus->GetParameter(1)+0.5*fit_gaus->GetParameter(2));
-    //     float mu_lhs_a_basic = fit_gaus->GetParameter(1);
-    //     float sigma_lhs_a_basic = fit_gaus->GetParameter(2);
-    //     float mu_lhs_a_basic_err = fit_gaus->GetParError(1);
-    //     float sigma_lhs_a_basic_err = fit_gaus->GetParError(2);
-
-    //     TF1 * fit_gaus2 = new TF1("fit_gaus2", "gaus", -40, 40);
-    //     h1_a_random->Fit(fit_gaus2, "RQ", "", -40, 0);
-    //     h1_a_random->Fit(fit_gaus2, "RQ", "", fit_gaus2->GetParameter(1)-3*fit_gaus2->GetParameter(2), fit_gaus2->GetParameter(1)+0.5*fit_gaus2->GetParameter(2));
-    //     float mu_lhs_a_random = fit_gaus2->GetParameter(1);
-    //     float sigma_lhs_a_random = fit_gaus2->GetParameter(2);
-    //     float mu_lhs_a_random_err = fit_gaus2->GetParError(1);
-    //     float sigma_lhs_a_random_err = fit_gaus2->GetParError(2);
-
-
-    //     // fill vectors
-    //     mu_lhs_sub1_basic.push_back(mu_lhs_a_basic);
-    //     mu_lhs_sub1_random.push_back(mu_lhs_a_random);
-    //     sigma_lhs_sub1_basic.push_back(sigma_lhs_a_basic);
-    //     sigma_lhs_sub1_random.push_back(sigma_lhs_a_random);
-    //     mu_lhs_sub1_basic_err.push_back(mu_lhs_a_basic_err);
-    //     mu_lhs_sub1_random_err.push_back(mu_lhs_a_random_err);
-    //     sigma_lhs_sub1_basic_err.push_back(sigma_lhs_a_basic_err);
-    //     sigma_lhs_sub1_random_err.push_back(sigma_lhs_a_random_err);
-
-    //     mu_sub1_basic.push_back(mean_a_basic);
-    //     mu_sub1_random.push_back(mean_a_random);
-    //     mu_sub1_probe.push_back(mean_a_probe);
-    //     mu_sub1_embed.push_back(mean_a_embed);
-    //     sigma_sub1_basic.push_back(rms_a_basic);
-    //     sigma_sub1_random.push_back(rms_a_random);
-    //     sigma_sub1_probe.push_back(rms_a_probe);
-    //     sigma_sub1_embed.push_back(rms_a_embed);
-    //     mu_sub1_basic_err.push_back(mean_a_basic_err);
-    //     mu_sub1_random_err.push_back(mean_a_random_err);
-    //     mu_sub1_probe_err.push_back(mean_a_probe_err);
-    //     mu_sub1_embed_err.push_back(mean_a_embed_err);
-    //     sigma_sub1_basic_err.push_back(rms_a_basic_err);
-    //     sigma_sub1_random_err.push_back(rms_a_random_err);
-    //     sigma_sub1_probe_err.push_back(rms_a_probe_err);
-    //     sigma_sub1_embed_err.push_back(rms_a_embed_err);
-
-    //     float ap0 =( mean_a_basic*mean_a_basic);
-    //     float ab0 = ap0/mean_a_basic;
-      
-    //     TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 30, 3);
-      
-    //     fit_gamma->SetParNames("A","a_b","a_p");
-    //     fit_gamma->SetParameters(0.22, 1.18, 120);
-    //     fit_gamma->SetParLimits(0, 0.2, 1.2);
-    //     fit_gamma->SetParLimits(1, 1, 2.5);
-    //     fit_gamma->SetParLimits(2, 50, 120);
-    //     h1_a_random->Fit("fit_gamma", "QR", "", mean_a_basic-3*rms_a_basic, mean_a_basic+3*rms_a_basic);
-    //     float a_a_basic = fit_gamma->GetParameter(0);
-    //     float ab_a_basic = fit_gamma->GetParameter(1);
-    //     float ap_a_basic = fit_gamma->GetParameter(2);
-    //     float m = ap_a_basic/ab_a_basic;
-    //     float s = sqrt(ap_a_basic)/ab_a_basic;
-      
-    //     TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
-    //     fit_gamma2->SetParameter(0, a_a_basic);
-    //     fit_gamma2->SetParameter(1, ab_a_basic);
-    //     fit_gamma2->SetParameter(2, ap_a_basic);
-    //     // std::cout << "m = " << m << ", s = " << s << std::endl;
-    //     // fit_gamma->SetParLimits(0, 
-    //     h1_a_random->Fit(fit_gamma2, "QR", "", m-3*s, m+3*s);
-    //     a_a_basic = fit_gamma2->GetParameter(0);
-    //     ab_a_basic = fit_gamma2->GetParameter(1);
-    //     ap_a_basic = fit_gamma2->GetParameter(2);
-      
-    //     c = new TCanvas("c", "c", 800, 800);
-      
-    //     gPad->SetLeftMargin(0.15);
-    //     gPad->SetRightMargin(0.05);
-    //     gPad->SetBottomMargin(0.15);
-    //     gPad->SetTopMargin(0.05);
-    //     gPad->SetLogy();
-    //     // leg = new TLegend(0.15,0.8,0.4,0.92);
-    //     leg = new TLegend(0.17,0.65,0.4,0.92);
-    //     leg->SetBorderSize(0);
-    //     leg->SetFillStyle(0);
-    //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
-      
-    //     // TLegend * leg2 = new TLegend(0.6,0.8,0.8,0.92);
-    //     TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
-    //     leg2->SetBorderSize(0);
-    //     leg2->SetFillStyle(0);
-    //     leg2->SetNColumns(1);
-    //     leg2->SetTextSize(0.04);
-      
-       
-    //     h1_sub1_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_sub1_basic[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_sub1_basic[i]->SetMarkerSize(1.5);
-    //     h1_sub1_basic[i]->SetMarkerColor(kAzure-2);
-    //     h1_sub1_basic[i]->SetLineColor(kAzure-2);
-    //     h1_sub1_basic[i]->Draw("P");
-    //     // leg->AddEntry(h1_sub1_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-    //     leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
-      
-    //     fit_gaus->SetLineColor(kAzure-2);
-    //     fit_gaus->SetLineStyle(2);
-    //     fit_gaus->SetLineWidth(2);
-    //     fit_gaus->SetParameter(1, mu_lhs_a_basic);
-    //     fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-    //     fit_gaus->Draw("SAME");
-      
-    //     h1_sub1_random[i]->SetMarkerSize(1.5);
-    //     h1_sub1_random[i]->SetMarkerColor(kRed);
-    //     h1_sub1_random[i]->SetLineColor(kRed);
-    //     h1_sub1_random[i]->Draw(" P SAME");
-    //     // leg->AddEntry(h1_sub1_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-    //     leg->AddEntry(h1_area_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-      
-    //     fit_gaus2->SetParameter(1, mu_lhs_a_random);
-    //     fit_gaus2->SetParameter(2, sigma_lhs_a_random);
-    //     fit_gaus2->SetLineColor(kRed);
-    //     fit_gaus2->SetLineStyle(3);
-    //     fit_gaus2->SetLineWidth(2);
-    //     fit_gaus2->Draw("SAME");
-        
-    //     h1_a_probe->SetMarkerSize(1.5);
-    //     h1_a_probe->SetMarkerColor(kGreen+2);
-    //     h1_a_probe->SetLineColor(kGreen+2);
-    //     h1_a_probe->Draw("P SAME");
-    //     // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-    //     leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-      
-        
-    //     h1_a_embed->SetMarkerSize(1.5);
-    //     h1_a_embed->SetMarkerColor(kBlack);
-    //     h1_a_embed->SetLineColor(kBlack);
-    //     h1_a_embed->Draw("SAME");
-    //     // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-    //     leg->AddEntry(h1_a_embed, "Embed", "pe");
-
-    //     // leg->AddEntry(fit_gaus, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_basic, sigma_lhs_a_basic), "l");
-    //     // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
-
-    //     if(do_gamma) {
-    //         fit_gamma2->SetLineColor(kBlack);
-    //         fit_gamma2->SetParameter(0, a_a_basic);
-    //         fit_gamma2->SetParameter(1, ab_a_basic);
-    //         fit_gamma2->SetParameter(2, ap_a_basic);
-    //         fit_gamma2->SetLineStyle(1);
-    //         fit_gamma2->SetLineWidth(2);
-    //         fit_gamma2->Draw("SAME");
-    //         leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
-    //     }
-    //     std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Iterative"};
-    //     TLatex * tex = new TLatex();
-    //     tex->SetNDC();
-    //     tex->SetTextSize(0.04);
-    //     float tx = 0.19;
-    //     float ty_start = 0.6;
-    //     for ( auto tag : tags ) {
-    //         tex->DrawLatex(tx, ty_start, tag.c_str());
-    //         ty_start -= 0.05;
-    //     }
-    //     leg->Draw("SAME");
-    //     // leg2->Draw("SAME");
-    //     c->SaveAs(Form("%s/sub1_basic_%d.pdf", outdir.c_str(), i));
-      
-    //     delete c;
-    //     delete leg;
-    //     delete fit_gaus;
-    //     delete fit_gamma;
-    // }
 
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
 
@@ -4940,7 +4674,7 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         TH1F * h1_a_random = (TH1F*)h1_sub1_random[i]->Clone(Form("h1_a_random_%d", i));
         TH1F * h1_a_probe = (TH1F*)h1_sub1_probe[i]->Clone(Form("h1_a_probe_%d", i));
         TH1F * h1_a_embed = (TH1F*)h1_sub1_embed[i]->Clone(Form("h1_a_embed_%d", i));
-
+      
         float mean_a_basic = h1_a_basic->GetMean();
         float mean_a_random = h1_a_random->GetMean();
         float mean_a_probe = h1_a_probe->GetMean();
@@ -4958,8 +4692,6 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         float rms_a_probe_err = h1_a_probe->GetRMSError();
         float rms_a_embed_err = h1_a_embed->GetRMSError();
 
-       
-        
         
 
         TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
@@ -5006,95 +4738,78 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         sigma_sub1_probe_err.push_back(rms_a_probe_err);
         sigma_sub1_embed_err.push_back(rms_a_embed_err);
 
-   
-        // float ap0 =( mean_a_basic*mean_a_basic);
-        // float ab0 = ap0/mean_a_basic;
-
-        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 50, 3);
+        float ap0 =( mean_a_basic*mean_a_basic);
+        float ab0 = ap0/mean_a_basic;
+      
+        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 30, 3);
+      
         fit_gamma->SetParNames("A","a_b","a_p");
-        fit_gamma->SetParameters(0.1, 1.18, 120);
-        // fit_gamma->SetParLimits(0, 0.2, 1.2);
-        // fit_gamma->SetParLimits(1, 1, 2.5);
-        // fit_gamma->SetParLimits(2, 50, 130);
-        h1_a_random->Fit("fit_gamma", "LM+QR", "", 5, 50);
+        fit_gamma->SetParameters(0.22, 1.18, 120);
+        fit_gamma->SetParLimits(0, 0.2, 1.2);
+        fit_gamma->SetParLimits(1, 1, 2.5);
+        fit_gamma->SetParLimits(2, 50, 120);
+        h1_a_random->Fit("fit_gamma", "QR", "", mean_a_basic-3*rms_a_basic, mean_a_basic+3*rms_a_basic);
         float a_a_basic = fit_gamma->GetParameter(0);
         float ab_a_basic = fit_gamma->GetParameter(1);
         float ap_a_basic = fit_gamma->GetParameter(2);
         float m = ap_a_basic/ab_a_basic;
         float s = sqrt(ap_a_basic)/ab_a_basic;
-    
+      
         TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
         fit_gamma2->SetParameter(0, a_a_basic);
         fit_gamma2->SetParameter(1, ab_a_basic);
         fit_gamma2->SetParameter(2, ap_a_basic);
-        // std::cout << "m = " << m << ", s = " << s << std::endl;
-        // h1_a_random->Fit(fit_gamma2, "LQR", "", m-3*s, m+3*s);
+        std::cout << "m = " << m << ", s = " << s << std::endl;
+        // fit_gamma->SetParLimits(0, 
+        h1_a_random->Fit(fit_gamma2, "QR", "", m-3*s, m+3*s);
         a_a_basic = fit_gamma2->GetParameter(0);
         ab_a_basic = fit_gamma2->GetParameter(1);
         ap_a_basic = fit_gamma2->GetParameter(2);
-        float chi2overndf = fit_gamma2->GetChisquare()/fit_gamma2->GetNDF();
-        //  std::cout << "m = " << m << ", s = " << s << std::endl;
-
+      
         c = new TCanvas("c", "c", 800, 800);
-
-        if(i == 0) {
-            // c->SetLogy();
-            TFile * f = new TFile(Form("%s/fit_sub1_cent0_results.root", outdir.c_str()), "RECREATE");
-            h1_a_basic->Write();
-            h1_a_random->Write();
-            h1_a_probe->Write();
-            h1_a_embed->Write();
-            fit_gaus->Write();
-            fit_gaus2->Write();
-            fit_gamma->Write();
-            f->Close();
-            delete f;
-        }
-
+      
         gPad->SetLeftMargin(0.15);
         gPad->SetRightMargin(0.05);
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
         // leg = new TLegend(0.15,0.8,0.4,0.92);
-        leg = new TLegend(0.6,0.7,0.8,0.92);
+        leg = new TLegend(0.17,0.65,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
-
+        leg->SetTextSize(0.035);
+      
+        // TLegend * leg2 = new TLegend(0.6,0.8,0.8,0.92);
         TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
         leg2->SetBorderSize(0);
         leg2->SetFillStyle(0);
         leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
-
+        leg2->SetTextSize(0.035);
+      
+       
         h1_sub1_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_sub1_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 2e0);
+        h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_sub1_basic[i]->SetMarkerSize(1.5);
         h1_sub1_basic[i]->SetMarkerColor(kAzure-2);
         h1_sub1_basic[i]->SetLineColor(kAzure-2);
-        h1_sub1_basic[i]->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
         h1_sub1_basic[i]->Draw("P");
-        // leg->AddEntry(h1_sub1_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-        leg->AddEntry(h1_sub1_basic[i], "Basic Cones", "pe");
-
+        leg->AddEntry(h1_sub1_basic[i], Form("Basic: #mu=%0.2f, #sigma = %0.2f", mean_a_basic, rms_a_basic), "pe");
+      
         fit_gaus->SetLineColor(kAzure-2);
         fit_gaus->SetLineStyle(2);
         fit_gaus->SetLineWidth(2);
         fit_gaus->SetParameter(1, mu_lhs_a_basic);
         fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-        // fit_gaus->Draw("SAME");
+        fit_gaus->Draw("SAME");
       
         h1_sub1_random[i]->SetMarkerSize(1.5);
         h1_sub1_random[i]->SetMarkerColor(kRed);
         h1_sub1_random[i]->SetLineColor(kRed);
         h1_sub1_random[i]->Draw(" P SAME");
-        // leg->AddEntry(h1_sub1_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-        leg->AddEntry(h1_sub1_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(fit_gaus2, "Gaussian Fit", "l");
-
+        leg->AddEntry(h1_sub1_random[i], Form("Randomized #eta#phi: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
+      
         fit_gaus2->SetParameter(1, mu_lhs_a_random);
         fit_gaus2->SetParameter(2, sigma_lhs_a_random);
         fit_gaus2->SetLineColor(kRed);
@@ -5106,18 +4821,17 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         h1_a_probe->SetMarkerColor(kGreen+2);
         h1_a_probe->SetLineColor(kGreen+2);
         h1_a_probe->Draw("P SAME");
-        // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-
+        leg->AddEntry(h1_a_probe, Form("E_{T}^{probe} = 30 GeV: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
+      
+        
         h1_a_embed->SetMarkerSize(1.5);
         h1_a_embed->SetMarkerColor(kBlack);
         h1_a_embed->SetLineColor(kBlack);
         h1_a_embed->Draw("SAME");
-        // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-        leg->AddEntry(h1_a_embed, "Embed", "pe");
+        leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f, #sigma = %0.2f", mean_a_embed, rms_a_embed), "pe");
 
-        
-        // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
+        leg->AddEntry(fit_gaus, Form("#mu_{lhs} = %0.2f, #sigma_{lhs} = %0.2f", mu_lhs_a_basic, sigma_lhs_a_basic), "l");
+        leg->AddEntry(fit_gaus2, Form("#mu_{lhs} = %0.2f, #sigma_{lhs} = %0.2f", mu_lhs_a_random, sigma_lhs_a_random), "l");
 
         if(do_gamma) {
             fit_gamma2->SetLineColor(kBlack);
@@ -5129,13 +4843,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
             fit_gamma2->Draw("SAME");
             leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
         }
-   
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "#it{Iterative Method}"};
+        std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Iterative"};
         TLatex * tex = new TLatex();
         tex->SetNDC();
-        tex->SetTextSize(0.04);
+        tex->SetTextSize(0.035);
         float tx = 0.19;
-        float ty_start = 0.87;
+        float ty_start = 0.6;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.05;
@@ -5143,273 +4856,7 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         leg->Draw("SAME");
         // leg2->Draw("SAME");
         c->SaveAs(Form("%s/sub1_basic_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/sub1_basic_%d.png", outdir.c_str(), i));
-
-        delete c;
-        delete leg;
-        delete fit_gaus;
-        delete fit_gamma;
-    }
-
-
-    for ( int i = 0; i < 1; ++i ) {
-
-        TH1F * h1_a_basic = (TH1F*)h1_sub1_basic[i]->Clone(Form("h1_a_basic_%d", i));
-        TH1F * h1_a_random = (TH1F*)h1_sub1_random[i]->Clone(Form("h1_a_random_%d", i));
-        TH1F * h1_a_probe = (TH1F*)h1_sub1_probe[i]->Clone(Form("h1_a_probe_%d", i));
-        TH1F * h1_a_embed = (TH1F*)h1_sub1_embed[i]->Clone(Form("h1_a_embed_%d", i));
-
-        float mean_a_basic = h1_a_basic->GetMean();
-        float mean_a_random = h1_a_random->GetMean();
-        float mean_a_probe = h1_a_probe->GetMean();
-        float mean_a_embed = h1_a_embed->GetMean();
-        float rms_a_basic = h1_a_basic->GetRMS();
-        float rms_a_random = h1_a_random->GetRMS();
-        float rms_a_probe = h1_a_probe->GetRMS();
-        float rms_a_embed = h1_a_embed->GetRMS();
-        float mean_a_basic_err = h1_a_basic->GetMeanError();
-        float mean_a_random_err = h1_a_random->GetMeanError();
-        float mean_a_probe_err = h1_a_probe->GetMeanError();
-        float mean_a_embed_err = h1_a_embed->GetMeanError();
-        float rms_a_basic_err = h1_a_basic->GetRMSError();
-        float rms_a_random_err = h1_a_random->GetRMSError();
-        float rms_a_probe_err = h1_a_probe->GetRMSError();
-        float rms_a_embed_err = h1_a_embed->GetRMSError();
-
-       
-        
-        
-
-        TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
-        h1_a_basic->Fit(fit_gaus, "RQ", "", -40, 0);
-        h1_a_basic->Fit(fit_gaus, "RQ", "", fit_gaus->GetParameter(1)-3*fit_gaus->GetParameter(2), fit_gaus->GetParameter(1)+0.5*fit_gaus->GetParameter(2));
-        float mu_lhs_a_basic = fit_gaus->GetParameter(1);
-        float sigma_lhs_a_basic = fit_gaus->GetParameter(2);
-        float mu_lhs_a_basic_err = fit_gaus->GetParError(1);
-        float sigma_lhs_a_basic_err = fit_gaus->GetParError(2);
-
-        TF1 * fit_gaus2 = new TF1("fit_gaus2", "gaus", -40, 40);
-        h1_a_random->Fit(fit_gaus2, "RQ", "", -40, 0);
-        h1_a_random->Fit(fit_gaus2, "RQ", "", fit_gaus2->GetParameter(1)-3*fit_gaus2->GetParameter(2), fit_gaus2->GetParameter(1)+0.5*fit_gaus2->GetParameter(2));
-        float mu_lhs_a_random = fit_gaus2->GetParameter(1);
-        float sigma_lhs_a_random = fit_gaus2->GetParameter(2);
-        float mu_lhs_a_random_err = fit_gaus2->GetParError(1);
-        float sigma_lhs_a_random_err = fit_gaus2->GetParError(2);
-
-
-        // fill vectors
-        mu_lhs_sub1_basic.push_back(mu_lhs_a_basic);
-        mu_lhs_sub1_random.push_back(mu_lhs_a_random);
-        sigma_lhs_sub1_basic.push_back(sigma_lhs_a_basic);
-        sigma_lhs_sub1_random.push_back(sigma_lhs_a_random);
-        mu_lhs_sub1_basic_err.push_back(mu_lhs_a_basic_err);
-        mu_lhs_sub1_random_err.push_back(mu_lhs_a_random_err);
-        sigma_lhs_sub1_basic_err.push_back(sigma_lhs_a_basic_err);
-        sigma_lhs_sub1_random_err.push_back(sigma_lhs_a_random_err);
-
-        mu_sub1_basic.push_back(mean_a_basic);
-        mu_sub1_random.push_back(mean_a_random);
-        mu_sub1_probe.push_back(mean_a_probe);
-        mu_sub1_embed.push_back(mean_a_embed);
-        sigma_sub1_basic.push_back(rms_a_basic);
-        sigma_sub1_random.push_back(rms_a_random);
-        sigma_sub1_probe.push_back(rms_a_probe);
-        sigma_sub1_embed.push_back(rms_a_embed);
-        mu_sub1_basic_err.push_back(mean_a_basic_err);
-        mu_sub1_random_err.push_back(mean_a_random_err);
-        mu_sub1_probe_err.push_back(mean_a_probe_err);
-        mu_sub1_embed_err.push_back(mean_a_embed_err);
-        sigma_sub1_basic_err.push_back(rms_a_basic_err);
-        sigma_sub1_random_err.push_back(rms_a_random_err);
-        sigma_sub1_probe_err.push_back(rms_a_probe_err);
-        sigma_sub1_embed_err.push_back(rms_a_embed_err);
-
-   
-        // float ap0 =( mean_a_basic*mean_a_basic);
-        // float ab0 = ap0/mean_a_basic;
-        TH1F * h1_dummy = (TH1F*)h1_a_random->Clone("h1_dummy");
-        h1_dummy->SetMarkerStyle(20);
-        h1_dummy->SetMarkerSize(0);
-        h1_dummy->SetLineColor(0);
-        h1_dummy->SetLineWidth(0);
-        h1_dummy->SetFillStyle(0);
-        h1_dummy->SetFillColor(0);
-
-        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 50, 3);
-        fit_gamma->SetParNames("A","a_b","a_p");
-        fit_gamma->SetParameters(0.1, 1.18, 120);
-        // fit_gamma->SetParLimits(0, 0.2, 1.2);
-        // fit_gamma->SetParLimits(1, 1, 2.5);
-        // fit_gamma->SetParLimits(2, 50, 130);
-        h1_a_random->Fit("fit_gamma", "LM+QR", "", 5, 50);
-        float a_a_basic = fit_gamma->GetParameter(0);
-        float ab_a_basic = fit_gamma->GetParameter(1);
-        float ap_a_basic = fit_gamma->GetParameter(2);
-        float m = ap_a_basic/ab_a_basic;
-        float s = sqrt(ap_a_basic)/ab_a_basic;
-    
-        TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
-        fit_gamma2->SetParameter(0, a_a_basic);
-        fit_gamma2->SetParameter(1, ab_a_basic);
-        fit_gamma2->SetParameter(2, ap_a_basic);
-        // std::cout << "m = " << m << ", s = " << s << std::endl;
-        // h1_a_random->Fit(fit_gamma2, "LQR", "", m-3*s, m+3*s);
-        a_a_basic = fit_gamma2->GetParameter(0);
-        ab_a_basic = fit_gamma2->GetParameter(1);
-        ap_a_basic = fit_gamma2->GetParameter(2);
-        float chi2overndf = fit_gamma2->GetChisquare()/fit_gamma2->GetNDF();
-        //  std::cout << "m = " << m << ", s = " << s << std::endl;
-
-        c = new TCanvas("c", "c", 800, 800);
-
-        if(i == 0) {
-            // c->SetLogy();
-            TFile * f = new TFile(Form("%s/fit_sub1_cent0_results.root", outdir.c_str()), "RECREATE");
-            h1_a_basic->Write();
-            h1_a_random->Write();
-            h1_a_probe->Write();
-            h1_a_embed->Write();
-            fit_gaus->Write();
-            fit_gaus2->Write();
-            fit_gamma->Write();
-            f->Close();
-            delete f;
-        }
-
-        gPad->SetLeftMargin(0.15);
-        gPad->SetRightMargin(0.05);
-        gPad->SetBottomMargin(0.15);
-        gPad->SetTopMargin(0.05);
-        gPad->SetLogy();
-        // leg = new TLegend(0.15,0.8,0.4,0.92);
-        leg = new TLegend(0.6,0.7,0.8,0.92);
-        leg->SetBorderSize(0);
-        leg->SetFillStyle(0);
-        leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
-
-        TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
-        leg2->SetBorderSize(0);
-        leg2->SetFillStyle(0);
-        leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
-
-        h1_sub1_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
-        h1_sub1_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 2e0);
-        h1_sub1_basic[i]->SetMarkerSize(1.5);
-        h1_sub1_basic[i]->SetMarkerColor(kAzure-2);
-        h1_sub1_basic[i]->SetLineColor(kAzure-2);
-        h1_sub1_basic[i]->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
-        h1_sub1_basic[i]->Draw("P");
-        // leg->AddEntry(h1_sub1_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-        leg->AddEntry(h1_sub1_basic[i], "Basic Cones", "pe");
-        for (int j = 0; j < 3; j++)
-        {
-            leg->AddEntry(h1_dummy, " ", ""); // Add empty entries to keep the legend size consistent
-        }
-
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "#it{Iterative Method}"};
-        TLatex * tex = new TLatex();
-        tex->SetNDC();
-        tex->SetTextSize(0.04);
-        float tx = 0.19;
-        float ty_start = 0.87;
-        for ( auto tag : tags ) {
-            tex->DrawLatex(tx, ty_start, tag.c_str());
-            ty_start -= 0.05;
-        }
-
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim.png", outdir.c_str(), i));
-        leg->Clear();
-
-
-        fit_gaus->SetLineColor(kAzure-2);
-        fit_gaus->SetLineStyle(2);
-        fit_gaus->SetLineWidth(2);
-        fit_gaus->SetParameter(1, mu_lhs_a_basic);
-        fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-        // fit_gaus->Draw("SAME");
       
-        h1_sub1_random[i]->SetMarkerSize(1.5);
-        h1_sub1_random[i]->SetMarkerColor(kRed);
-        h1_sub1_random[i]->SetLineColor(kRed);
-        h1_sub1_random[i]->Draw(" P SAME");
-        // leg->AddEntry(h1_sub1_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-        leg->AddEntry(h1_sub1_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_sub1_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        for (int j = 0; j < 2; j++)
-        {
-            leg->AddEntry(h1_dummy, " ", ""); // Add empty entries to keep the legend size consistent
-        }
-
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim_randomized.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim_randomized.png", outdir.c_str(), i));
-        leg->Clear();
-        // leg->AddEntry(fit_gaus2, "Gaussian Fit", "l");
-
-        fit_gaus2->SetParameter(1, mu_lhs_a_random);
-        fit_gaus2->SetParameter(2, sigma_lhs_a_random);
-        fit_gaus2->SetLineColor(kRed);
-        fit_gaus2->SetLineStyle(3);
-        fit_gaus2->SetLineWidth(2);
-        // fit_gaus2->Draw("SAME");
-        
-        h1_a_probe->SetMarkerSize(1.5);
-        h1_a_probe->SetMarkerColor(kGreen+2);
-        h1_a_probe->SetLineColor(kGreen+2);
-        h1_a_probe->Draw("P SAME");
-        // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-        leg->AddEntry(h1_sub1_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_sub1_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-        leg->AddEntry(h1_dummy, " ", ""); // Add empty entry to keep the legend size consistent
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim_probe.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim_probe.png", outdir.c_str(), i));
-        leg->Clear();
-        h1_a_embed->SetMarkerSize(1.5);
-        h1_a_embed->SetMarkerColor(kBlack);
-        h1_a_embed->SetLineColor(kBlack);
-        h1_a_embed->Draw("SAME");
-        // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-        leg->AddEntry(h1_sub1_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_sub1_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-        leg->AddEntry(h1_a_embed, "Embed", "pe");
-
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim_embed.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/sub1_basic_%d_prelim_embed.png", outdir.c_str(), i));
-
-        
-        // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
-
-        if(do_gamma) {
-            fit_gamma2->SetLineColor(kBlack);
-            fit_gamma2->SetParameter(0, a_a_basic);
-            fit_gamma2->SetParameter(1, ab_a_basic);
-            fit_gamma2->SetParameter(2, ap_a_basic);
-            fit_gamma2->SetLineStyle(1);
-            fit_gamma2->SetLineWidth(2);
-            fit_gamma2->Draw("SAME");
-            leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
-        }
-   
-       
-        leg->Draw("SAME");
-        // leg2->Draw("SAME");
-        c->SaveAs(Form("%s/sub1_basic_%d_all.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/sub1_basic_%d_all.png", outdir.c_str(), i));
-
-
         delete c;
         delete leg;
         delete fit_gaus;
@@ -5417,534 +4864,6 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
     }
 
 
-    for ( int i = 0; i < 1; ++i ) {
-
-        TH1F * h1_a_basic = (TH1F*)h1_area_basic[i]->Clone(Form("h1_a_basic_%d", i));
-        TH1F * h1_a_random = (TH1F*)h1_area_random[i]->Clone(Form("h1_a_random_%d", i));
-        TH1F * h1_a_probe = (TH1F*)h1_area_probe[i]->Clone(Form("h1_a_probe_%d", i));
-        TH1F * h1_a_embed = (TH1F*)h1_area_embed[i]->Clone(Form("h1_a_embed_%d", i));
-    
-        float mean_a_basic = h1_a_basic->GetMean();
-        float mean_a_random = h1_a_random->GetMean();
-        float mean_a_probe = h1_a_probe->GetMean();
-        float mean_a_embed = h1_a_embed->GetMean();
-        float rms_a_basic = h1_a_basic->GetRMS();
-        float rms_a_random = h1_a_random->GetRMS();
-        float rms_a_probe = h1_a_probe->GetRMS();
-        float rms_a_embed = h1_a_embed->GetRMS();
-        float mean_a_basic_err = h1_a_basic->GetMeanError();
-        float mean_a_random_err = h1_a_random->GetMeanError();
-        float mean_a_probe_err = h1_a_probe->GetMeanError();
-        float mean_a_embed_err = h1_a_embed->GetMeanError();
-        float rms_a_basic_err = h1_a_basic->GetRMSError();
-        float rms_a_random_err = h1_a_random->GetRMSError();
-        float rms_a_probe_err = h1_a_probe->GetRMSError();
-        float rms_a_embed_err = h1_a_embed->GetRMSError();
-    
-       
-        
-        
-    
-        TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
-        h1_a_basic->Fit(fit_gaus, "RQ", "", -40, 0);
-        h1_a_basic->Fit(fit_gaus, "RQ", "", fit_gaus->GetParameter(1)-3*fit_gaus->GetParameter(2), fit_gaus->GetParameter(1)+0.5*fit_gaus->GetParameter(2));
-        float mu_lhs_a_basic = fit_gaus->GetParameter(1);
-        float sigma_lhs_a_basic = fit_gaus->GetParameter(2);
-        float mu_lhs_a_basic_err = fit_gaus->GetParError(1);
-        float sigma_lhs_a_basic_err = fit_gaus->GetParError(2);
-    
-        TF1 * fit_gaus2 = new TF1("fit_gaus2", "gaus", -40, 40);
-        h1_a_random->Fit(fit_gaus2, "RQ", "", -40, 0);
-        h1_a_random->Fit(fit_gaus2, "RQ", "", fit_gaus2->GetParameter(1)-3*fit_gaus2->GetParameter(2), fit_gaus2->GetParameter(1)+0.5*fit_gaus2->GetParameter(2));
-        float mu_lhs_a_random = fit_gaus2->GetParameter(1);
-        float sigma_lhs_a_random = fit_gaus2->GetParameter(2);
-        float mu_lhs_a_random_err = fit_gaus2->GetParError(1);
-        float sigma_lhs_a_random_err = fit_gaus2->GetParError(2);
-    
-    
-        // fill vectors
-        mu_lhs_area_basic.push_back(mu_lhs_a_basic);
-        mu_lhs_area_random.push_back(mu_lhs_a_random);
-        sigma_lhs_area_basic.push_back(sigma_lhs_a_basic);
-        sigma_lhs_area_random.push_back(sigma_lhs_a_random);
-        mu_lhs_area_basic_err.push_back(mu_lhs_a_basic_err);
-        mu_lhs_area_random_err.push_back(mu_lhs_a_random_err);
-        sigma_lhs_area_basic_err.push_back(sigma_lhs_a_basic_err);
-        sigma_lhs_area_random_err.push_back(sigma_lhs_a_random_err);
-    
-        mu_area_basic.push_back(mean_a_basic);
-        mu_area_random.push_back(mean_a_random);
-        mu_area_probe.push_back(mean_a_probe);
-        mu_area_embed.push_back(mean_a_embed);
-        sigma_area_basic.push_back(rms_a_basic);
-        sigma_area_random.push_back(rms_a_random);
-        sigma_area_probe.push_back(rms_a_probe);
-        sigma_area_embed.push_back(rms_a_embed);
-        mu_area_basic_err.push_back(mean_a_basic_err);
-        mu_area_random_err.push_back(mean_a_random_err);
-        mu_area_probe_err.push_back(mean_a_probe_err);
-        mu_area_embed_err.push_back(mean_a_embed_err);
-        sigma_area_basic_err.push_back(rms_a_basic_err);
-        sigma_area_random_err.push_back(rms_a_random_err);
-        sigma_area_probe_err.push_back(rms_a_probe_err);
-        sigma_area_embed_err.push_back(rms_a_embed_err);
-    
-    
-        // float ap0 =( mean_a_basic*mean_a_basic);
-        // float ab0 = ap0/mean_a_basic;
-        TH1F * h1_dummy = (TH1F*)h1_a_random->Clone("h1_dummy");
-        h1_dummy->SetMarkerStyle(20);
-        h1_dummy->SetMarkerSize(0);
-        h1_dummy->SetLineColor(0);
-        h1_dummy->SetLineWidth(0);
-        h1_dummy->SetFillStyle(0);
-        h1_dummy->SetFillColor(0);
-    
-        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 50, 3);
-        fit_gamma->SetParNames("A","a_b","a_p");
-        fit_gamma->SetParameters(0.1, 1.18, 120);
-        // fit_gamma->SetParLimits(0, 0.2, 1.2);
-        // fit_gamma->SetParLimits(1, 1, 2.5);
-        // fit_gamma->SetParLimits(2, 50, 130);
-        h1_a_random->Fit("fit_gamma", "LM+QR", "", 5, 50);
-        float a_a_basic = fit_gamma->GetParameter(0);
-        float ab_a_basic = fit_gamma->GetParameter(1);
-        float ap_a_basic = fit_gamma->GetParameter(2);
-        float m = ap_a_basic/ab_a_basic;
-        float s = sqrt(ap_a_basic)/ab_a_basic;
-    
-        TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
-        fit_gamma2->SetParameter(0, a_a_basic);
-        fit_gamma2->SetParameter(1, ab_a_basic);
-        fit_gamma2->SetParameter(2, ap_a_basic);
-        // std::cout << "m = " << m << ", s = " << s << std::endl;
-        // h1_a_random->Fit(fit_gamma2, "LQR", "", m-3*s, m+3*s);
-        a_a_basic = fit_gamma2->GetParameter(0);
-        ab_a_basic = fit_gamma2->GetParameter(1);
-        ap_a_basic = fit_gamma2->GetParameter(2);
-        float chi2overndf = fit_gamma2->GetChisquare()/fit_gamma2->GetNDF();
-        //  std::cout << "m = " << m << ", s = " << s << std::endl;
-    
-        c = new TCanvas("c", "c", 800, 800);
-    
-        if(i == 0) {
-            // c->SetLogy();
-            TFile * f = new TFile(Form("%s/fit_area_cent0_results.root", outdir.c_str()), "RECREATE");
-            h1_a_basic->Write();
-            h1_a_random->Write();
-            h1_a_probe->Write();
-            h1_a_embed->Write();
-            fit_gaus->Write();
-            fit_gaus2->Write();
-            fit_gamma->Write();
-            f->Close();
-            delete f;
-        }
-    
-        gPad->SetLeftMargin(0.15);
-        gPad->SetRightMargin(0.05);
-        gPad->SetBottomMargin(0.15);
-        gPad->SetTopMargin(0.05);
-        gPad->SetLogy();
-        // leg = new TLegend(0.15,0.8,0.4,0.92);
-        leg = new TLegend(0.6,0.7,0.8,0.92);
-        leg->SetBorderSize(0);
-        leg->SetFillStyle(0);
-        leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
-    
-        TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
-        leg2->SetBorderSize(0);
-        leg2->SetFillStyle(0);
-        leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
-    
-        h1_area_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
-        h1_area_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_area_basic[i]->GetYaxis()->SetRangeUser(1e-4, 2e0);
-        h1_area_basic[i]->SetMarkerSize(1.5);
-        h1_area_basic[i]->SetMarkerColor(kAzure-2);
-        h1_area_basic[i]->SetLineColor(kAzure-2);
-        h1_area_basic[i]->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
-        h1_area_basic[i]->Draw("P");
-        // leg->AddEntry(h1_area_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-        leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
-        for (int j = 0; j < 3; j++)
-        {
-            leg->AddEntry(h1_dummy, " ", ""); // Add empty entries to keep the legend size consistent
-        }
-    
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "#it{Area Method}"};
-        TLatex * tex = new TLatex();
-        tex->SetNDC();
-        tex->SetTextSize(0.04);
-        float tx = 0.19;
-        float ty_start = 0.87;
-        for ( auto tag : tags ) {
-            tex->DrawLatex(tx, ty_start, tag.c_str());
-            ty_start -= 0.05;
-        }
-    
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/area_basic_%d_prelim.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d_prelim.png", outdir.c_str(), i));
-        leg->Clear();
-    
-    
-        fit_gaus->SetLineColor(kAzure-2);
-        fit_gaus->SetLineStyle(2);
-        fit_gaus->SetLineWidth(2);
-        fit_gaus->SetParameter(1, mu_lhs_a_basic);
-        fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-        // fit_gaus->Draw("SAME");
-      
-        h1_area_random[i]->SetMarkerSize(1.5);
-        h1_area_random[i]->SetMarkerColor(kRed);
-        h1_area_random[i]->SetLineColor(kRed);
-        h1_area_random[i]->Draw(" P SAME");
-        // leg->AddEntry(h1_area_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-        leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_area_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        for (int j = 0; j < 2; j++)
-        {
-            leg->AddEntry(h1_dummy, " ", ""); // Add empty entries to keep the legend size consistent
-        }
-    
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/area_basic_%d_prelim_randomized.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d_prelim_randomized.png", outdir.c_str(), i));
-        leg->Clear();
-        // leg->AddEntry(fit_gaus2, "Gaussian Fit", "l");
-    
-        fit_gaus2->SetParameter(1, mu_lhs_a_random);
-        fit_gaus2->SetParameter(2, sigma_lhs_a_random);
-        fit_gaus2->SetLineColor(kRed);
-        fit_gaus2->SetLineStyle(3);
-        fit_gaus2->SetLineWidth(2);
-        // fit_gaus2->Draw("SAME");
-        
-        h1_a_probe->SetMarkerSize(1.5);
-        h1_a_probe->SetMarkerColor(kGreen+2);
-        h1_a_probe->SetLineColor(kGreen+2);
-        h1_a_probe->Draw("P SAME");
-        // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-        leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_area_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-        leg->AddEntry(h1_dummy, " ", ""); // Add empty entry to keep the legend size consistent
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/area_basic_%d_prelim_probe.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d_prelim_probe.png", outdir.c_str(), i));
-        leg->Clear();
-        h1_a_embed->SetMarkerSize(1.5);
-        h1_a_embed->SetMarkerColor(kBlack);
-        h1_a_embed->SetLineColor(kBlack);
-        h1_a_embed->Draw("SAME");
-        // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-        leg->AddEntry(h1_area_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_area_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-        leg->AddEntry(h1_a_embed, "Embed", "pe");
-    
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/area_basic_%d_prelim_embed.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d_prelim_embed.png", outdir.c_str(), i));
-    
-        
-        // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
-    
-        if(do_gamma) {
-            fit_gamma2->SetLineColor(kBlack);
-            fit_gamma2->SetParameter(0, a_a_basic);
-            fit_gamma2->SetParameter(1, ab_a_basic);
-            fit_gamma2->SetParameter(2, ap_a_basic);
-            fit_gamma2->SetLineStyle(1);
-            fit_gamma2->SetLineWidth(2);
-            fit_gamma2->Draw("SAME");
-            leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
-        }
-    
-       
-        leg->Draw("SAME");
-        // leg2->Draw("SAME");
-        c->SaveAs(Form("%s/area_basic_%d_all.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d_all.png", outdir.c_str(), i));
-    
-    
-        delete c;
-        delete leg;
-        delete fit_gaus;
-        delete fit_gamma;
-    }
-
-
-    for ( int i = 0; i < 1; ++i ) {
-
-        TH1F * h1_a_basic = (TH1F*)h1_mult_basic[i]->Clone(Form("h1_a_basic_%d", i));
-        TH1F * h1_a_random = (TH1F*)h1_mult_random[i]->Clone(Form("h1_a_random_%d", i));
-        TH1F * h1_a_probe = (TH1F*)h1_mult_probe[i]->Clone(Form("h1_a_probe_%d", i));
-        TH1F * h1_a_embed = (TH1F*)h1_mult_embed[i]->Clone(Form("h1_a_embed_%d", i));
-    
-        float mean_a_basic = h1_a_basic->GetMean();
-        float mean_a_random = h1_a_random->GetMean();
-        float mean_a_probe = h1_a_probe->GetMean();
-        float mean_a_embed = h1_a_embed->GetMean();
-        float rms_a_basic = h1_a_basic->GetRMS();
-        float rms_a_random = h1_a_random->GetRMS();
-        float rms_a_probe = h1_a_probe->GetRMS();
-        float rms_a_embed = h1_a_embed->GetRMS();
-        float mean_a_basic_err = h1_a_basic->GetMeanError();
-        float mean_a_random_err = h1_a_random->GetMeanError();
-        float mean_a_probe_err = h1_a_probe->GetMeanError();
-        float mean_a_embed_err = h1_a_embed->GetMeanError();
-        float rms_a_basic_err = h1_a_basic->GetRMSError();
-        float rms_a_random_err = h1_a_random->GetRMSError();
-        float rms_a_probe_err = h1_a_probe->GetRMSError();
-        float rms_a_embed_err = h1_a_embed->GetRMSError();
-    
-       
-        
-        
-    
-        TF1 * fit_gaus = new TF1("fit_gaus", "gaus", -40, 40);
-        h1_a_basic->Fit(fit_gaus, "RQ", "", -40, 0);
-        h1_a_basic->Fit(fit_gaus, "RQ", "", fit_gaus->GetParameter(1)-3*fit_gaus->GetParameter(2), fit_gaus->GetParameter(1)+0.5*fit_gaus->GetParameter(2));
-        float mu_lhs_a_basic = fit_gaus->GetParameter(1);
-        float sigma_lhs_a_basic = fit_gaus->GetParameter(2);
-        float mu_lhs_a_basic_err = fit_gaus->GetParError(1);
-        float sigma_lhs_a_basic_err = fit_gaus->GetParError(2);
-    
-        TF1 * fit_gaus2 = new TF1("fit_gaus2", "gaus", -40, 40);
-        h1_a_random->Fit(fit_gaus2, "RQ", "", -40, 0);
-        h1_a_random->Fit(fit_gaus2, "RQ", "", fit_gaus2->GetParameter(1)-3*fit_gaus2->GetParameter(2), fit_gaus2->GetParameter(1)+0.5*fit_gaus2->GetParameter(2));
-        float mu_lhs_a_random = fit_gaus2->GetParameter(1);
-        float sigma_lhs_a_random = fit_gaus2->GetParameter(2);
-        float mu_lhs_a_random_err = fit_gaus2->GetParError(1);
-        float sigma_lhs_a_random_err = fit_gaus2->GetParError(2);
-    
-    
-        // fill vectors
-        mu_lhs_mult_basic.push_back(mu_lhs_a_basic);
-        mu_lhs_mult_random.push_back(mu_lhs_a_random);
-        sigma_lhs_mult_basic.push_back(sigma_lhs_a_basic);
-        sigma_lhs_mult_random.push_back(sigma_lhs_a_random);
-        mu_lhs_mult_basic_err.push_back(mu_lhs_a_basic_err);
-        mu_lhs_mult_random_err.push_back(mu_lhs_a_random_err);
-        sigma_lhs_mult_basic_err.push_back(sigma_lhs_a_basic_err);
-        sigma_lhs_mult_random_err.push_back(sigma_lhs_a_random_err);
-    
-        mu_mult_basic.push_back(mean_a_basic);
-        mu_mult_random.push_back(mean_a_random);
-        mu_mult_probe.push_back(mean_a_probe);
-        mu_mult_embed.push_back(mean_a_embed);
-        sigma_mult_basic.push_back(rms_a_basic);
-        sigma_mult_random.push_back(rms_a_random);
-        sigma_mult_probe.push_back(rms_a_probe);
-        sigma_mult_embed.push_back(rms_a_embed);
-        mu_mult_basic_err.push_back(mean_a_basic_err);
-        mu_mult_random_err.push_back(mean_a_random_err);
-        mu_mult_probe_err.push_back(mean_a_probe_err);
-        mu_mult_embed_err.push_back(mean_a_embed_err);
-        sigma_mult_basic_err.push_back(rms_a_basic_err);
-        sigma_mult_random_err.push_back(rms_a_random_err);
-        sigma_mult_probe_err.push_back(rms_a_probe_err);
-        sigma_mult_embed_err.push_back(rms_a_embed_err);
-    
-    
-        // float ap0 =( mean_a_basic*mean_a_basic);
-        // float ab0 = ap0/mean_a_basic;
-        TH1F * h1_dummy = (TH1F*)h1_a_random->Clone("h1_dummy");
-        h1_dummy->SetMarkerStyle(20);
-        h1_dummy->SetMarkerSize(0);
-        h1_dummy->SetLineColor(0);
-        h1_dummy->SetLineWidth(0);
-        h1_dummy->SetFillStyle(0);
-        h1_dummy->SetFillColor(0);
-    
-        TF1 * fit_gamma = new TF1("fit_gamma", myGammaFunction, -30, 50, 3);
-        fit_gamma->SetParNames("A","a_b","a_p");
-        fit_gamma->SetParameters(0.1, 1.18, 120);
-        // fit_gamma->SetParLimits(0, 0.2, 1.2);
-        // fit_gamma->SetParLimits(1, 1, 2.5);
-        // fit_gamma->SetParLimits(2, 50, 130);
-        h1_a_random->Fit("fit_gamma", "LM+QR", "", 5, 50);
-        float a_a_basic = fit_gamma->GetParameter(0);
-        float ab_a_basic = fit_gamma->GetParameter(1);
-        float ap_a_basic = fit_gamma->GetParameter(2);
-        float m = ap_a_basic/ab_a_basic;
-        float s = sqrt(ap_a_basic)/ab_a_basic;
-    
-        TF1 * fit_gamma2 = new TF1("fit_gamma2", myGammaFunction, -30, 30, 3);
-        fit_gamma2->SetParameter(0, a_a_basic);
-        fit_gamma2->SetParameter(1, ab_a_basic);
-        fit_gamma2->SetParameter(2, ap_a_basic);
-        // std::cout << "m = " << m << ", s = " << s << std::endl;
-        // h1_a_random->Fit(fit_gamma2, "LQR", "", m-3*s, m+3*s);
-        a_a_basic = fit_gamma2->GetParameter(0);
-        ab_a_basic = fit_gamma2->GetParameter(1);
-        ap_a_basic = fit_gamma2->GetParameter(2);
-        float chi2overndf = fit_gamma2->GetChisquare()/fit_gamma2->GetNDF();
-        //  std::cout << "m = " << m << ", s = " << s << std::endl;
-    
-        c = new TCanvas("c", "c", 800, 800);
-    
-        if(i == 0) {
-            // c->SetLogy();
-            TFile * f = new TFile(Form("%s/fit_mult_cent0_results.root", outdir.c_str()), "RECREATE");
-            h1_a_basic->Write();
-            h1_a_random->Write();
-            h1_a_probe->Write();
-            h1_a_embed->Write();
-            fit_gaus->Write();
-            fit_gaus2->Write();
-            fit_gamma->Write();
-            f->Close();
-            delete f;
-        }
-    
-        gPad->SetLeftMargin(0.15);
-        gPad->SetRightMargin(0.05);
-        gPad->SetBottomMargin(0.15);
-        gPad->SetTopMargin(0.05);
-        gPad->SetLogy();
-        // leg = new TLegend(0.15,0.8,0.4,0.92);
-        leg = new TLegend(0.6,0.7,0.8,0.92);
-        leg->SetBorderSize(0);
-        leg->SetFillStyle(0);
-        leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
-    
-        TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
-        leg2->SetBorderSize(0);
-        leg2->SetFillStyle(0);
-        leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
-    
-        h1_mult_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
-        h1_mult_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 2e0);
-        h1_mult_basic[i]->SetMarkerSize(1.5);
-        h1_mult_basic[i]->SetMarkerColor(kAzure-2);
-        h1_mult_basic[i]->SetLineColor(kAzure-2);
-        h1_mult_basic[i]->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
-        h1_mult_basic[i]->Draw("P");
-        // leg->AddEntry(h1_mult_basic[i], Form("Basic: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_basic, rms_a_basic), "pe");
-        leg->AddEntry(h1_mult_basic[i], "Basic Cones", "pe");
-        for (int j = 0; j < 3; j++)
-        {
-            leg->AddEntry(h1_dummy, " ", ""); // Add empty entries to keep the legend size consistent
-        }
-    
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "#it{Multiplicity Method}"};
-        TLatex * tex = new TLatex();
-        tex->SetNDC();
-        tex->SetTextSize(0.04);
-        float tx = 0.19;
-        float ty_start = 0.87;
-        for ( auto tag : tags ) {
-            tex->DrawLatex(tx, ty_start, tag.c_str());
-            ty_start -= 0.05;
-        }
-    
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/mult_basic_%d_prelim.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/mult_basic_%d_prelim.png", outdir.c_str(), i));
-        leg->Clear();
-    
-    
-        fit_gaus->SetLineColor(kAzure-2);
-        fit_gaus->SetLineStyle(2);
-        fit_gaus->SetLineWidth(2);
-        fit_gaus->SetParameter(1, mu_lhs_a_basic);
-        fit_gaus->SetParameter(2, sigma_lhs_a_basic);
-        // fit_gaus->Draw("SAME");
-      
-        h1_mult_random[i]->SetMarkerSize(1.5);
-        h1_mult_random[i]->SetMarkerColor(kRed);
-        h1_mult_random[i]->SetLineColor(kRed);
-        h1_mult_random[i]->Draw(" P SAME");
-        // leg->AddEntry(h1_mult_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_random, rms_a_random), "pe");
-        leg->AddEntry(h1_mult_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_mult_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        for (int j = 0; j < 2; j++)
-        {
-            leg->AddEntry(h1_dummy, " ", ""); // Add empty entries to keep the legend size consistent
-        }
-    
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/mult_basic_%d_prelim_randomized.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/mult_basic_%d_prelim_randomized.png", outdir.c_str(), i));
-        leg->Clear();
-        // leg->AddEntry(fit_gaus2, "Gaussian Fit", "l");
-    
-        fit_gaus2->SetParameter(1, mu_lhs_a_random);
-        fit_gaus2->SetParameter(2, sigma_lhs_a_random);
-        fit_gaus2->SetLineColor(kRed);
-        fit_gaus2->SetLineStyle(3);
-        fit_gaus2->SetLineWidth(2);
-        // fit_gaus2->Draw("SAME");
-        
-        h1_a_probe->SetMarkerSize(1.5);
-        h1_a_probe->SetMarkerColor(kGreen+2);
-        h1_a_probe->SetLineColor(kGreen+2);
-        h1_a_probe->Draw("P SAME");
-        // leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_probe, rms_a_probe), "pe");
-        leg->AddEntry(h1_mult_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_mult_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-        leg->AddEntry(h1_dummy, " ", ""); // Add empty entry to keep the legend size consistent
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/mult_basic_%d_prelim_probe.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/mult_basic_%d_prelim_probe.png", outdir.c_str(), i));
-        leg->Clear();
-        h1_a_embed->SetMarkerSize(1.5);
-        h1_a_embed->SetMarkerColor(kBlack);
-        h1_a_embed->SetLineColor(kBlack);
-        h1_a_embed->Draw("SAME");
-        // leg->AddEntry(h1_a_embed, Form("Embed: #mu = %0.2f GeV, #sigma = %0.2f GeV", mean_a_embed, rms_a_embed), "pe");
-        leg->AddEntry(h1_mult_basic[i], "Basic Cones", "pe");
-        leg->AddEntry(h1_mult_random[i], "Randomized#kern[0.05]{#eta#phi}", "pe");
-        leg->AddEntry(h1_a_probe, "High E_{T} Probe", "pe");
-        leg->AddEntry(h1_a_embed, "Embed", "pe");
-    
-        leg->Draw("SAME");
-        c->Update();
-        c->SaveAs(Form("%s/mult_basic_%d_prelim_embed.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/mult_basic_%d_prelim_embed.png", outdir.c_str(), i));
-    
-        
-        // leg->AddEntry(fit_gaus2, Form("#mu^{lhs} = %0.2f GeV, #sigma^{lhs} = %0.2f GeV", mu_lhs_a_random, sigma_lhs_a_random), "l");
-    
-        if(do_gamma) {
-            fit_gamma2->SetLineColor(kBlack);
-            fit_gamma2->SetParameter(0, a_a_basic);
-            fit_gamma2->SetParameter(1, ab_a_basic);
-            fit_gamma2->SetParameter(2, ap_a_basic);
-            fit_gamma2->SetLineStyle(1);
-            fit_gamma2->SetLineWidth(2);
-            fit_gamma2->Draw("SAME");
-            leg->AddEntry(fit_gamma2, Form("f_{#Gamma}: b = %0.2f GeV, p = %0.1f", ab_a_basic, ap_a_basic), "l");
-        }
-    
-       
-        leg->Draw("SAME");
-        // leg2->Draw("SAME");
-        c->SaveAs(Form("%s/mult_basic_%d_all.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/mult_basic_%d_all.png", outdir.c_str(), i));
-    
-    
-        delete c;
-        delete leg;
-        delete fit_gaus;
-        delete fit_gamma;
-    }
 
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
 
@@ -5956,12 +4875,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
-    
-        leg = new TLegend(0.55,0.77,0.85,0.92);
+
+        leg = new TLegend(0.18,0.8,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
+        leg->SetTextSize(0.035);
        
         h1_area_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_area_basic[i]->GetXaxis()->SetNdivisions(510);
@@ -5971,36 +4890,34 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         h1_area_basic[i]->SetLineColor(kRed);
         h1_area_basic[i]->SetMarkerStyle(kFullCircle);
         h1_area_basic[i]->Draw("P");
-        leg->AddEntry(h1_area_basic[i],"Area Method", "pe");
+        leg->AddEntry(h1_area_basic[i], Form("Area: #mu=%0.2f, #sigma = %0.2f", h1_area_basic[i]->GetMean(), h1_area_basic[i]->GetRMS()), "pe");
       
         h1_mult_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_mult_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_mult_basic[i]->SetMarkerSize(1.5);
         h1_mult_basic[i]->SetMarkerColor(kAzure-2);
         h1_mult_basic[i]->SetLineColor(kAzure-2);
         h1_mult_basic[i]->SetMarkerStyle(kFullSquare);
         h1_mult_basic[i]->Draw("P SAME");
-        leg->AddEntry(h1_mult_basic[i], "Multiplicity Method", "pe");
-    
+        leg->AddEntry(h1_mult_basic[i], Form("Multiplicity: #mu=%0.2f, #sigma = %0.2f", h1_mult_basic[i]->GetMean(), h1_mult_basic[i]->GetRMS()), "pe");
+
         h1_sub1_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_sub1_basic[i]->GetXaxis()->SetNdivisions(510);
-        h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_sub1_basic[i]->SetMarkerSize(1.5);
         h1_sub1_basic[i]->SetMarkerColor(kGreen+2);
         h1_sub1_basic[i]->SetMarkerStyle(kFullTriangleUp);
         h1_sub1_basic[i]->SetLineColor(kGreen+2);
         h1_sub1_basic[i]->Draw("P SAME");
-        leg->AddEntry(h1_sub1_basic[i], "Iterative Method", "pe");
-    
+        leg->AddEntry(h1_sub1_basic[i], Form("Iterative: #mu=%0.2f, #sigma = %0.2f", h1_sub1_basic[i]->GetMean(), h1_sub1_basic[i]->GetRMS()), "pe");
+
         leg->Draw("SAME");
-        // std::vector<std::string> tags = {sPHENIX_Tag, "Basic Random Cones",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])),"#it{Basic Random Cones}"};
-    
+        std::vector<std::string> tags = {sPHENIX_Tag, "Basic Random Cones",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
         TLatex * tex = new TLatex();
-    
+
         // draw dashed vertical line at 0
-        TLine *line = new TLine(0, 1e-4, 0, 1e0);
+        TLine *line = new TLine(0, 1e-4, 0, 2e-1);
         line->SetLineStyle(2);
         line->SetLineWidth(2);
         line->SetLineColor(kBlack);
@@ -6008,97 +4925,23 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         
         tex->SetNDC();
         tex->SetTextFont(42);
-        tex->SetTextSize(0.04);
-        float tx = 0.17;
-        float ty_start = 0.89;
+        tex->SetTextSize(0.035);
+        float tx = 0.19;
+        float ty_start = 0.75;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.04;
         }
         c->SaveAs(Form("%s/area_mult_sub1_basic_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_mult_sub1_basic_%d.png", outdir.c_str(), i));
-    
-    
+
+
         delete c;
         delete leg;
-    
+
     }
-    // for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    
-    
-    //     c = new TCanvas("c", "c", 800, 800);
-      
-    //     gPad->SetLeftMargin(0.15);
-    //     gPad->SetRightMargin(0.05);
-    //     gPad->SetBottomMargin(0.15);
-    //     gPad->SetTopMargin(0.05);
-    //     gPad->SetLogy();
-    
-    //     leg = new TLegend(0.18,0.8,0.4,0.92);
-    //     leg->SetBorderSize(0);
-    //     leg->SetFillStyle(0);
-    //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
-       
-    //     h1_area_random[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_area_random[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_area_random[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_area_random[i]->SetMarkerSize(1.5);
-    //     h1_area_random[i]->SetMarkerColor(kRed);
-    //     h1_area_random[i]->SetLineColor(kRed);
-    //     h1_area_random[i]->SetMarkerStyle(kFullCircle);
-    //     h1_area_random[i]->Draw("P");
-    //     leg->AddEntry(h1_area_random[i], "Area", "pe");
-      
-    //     h1_mult_random[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_mult_random[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_mult_random[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_mult_random[i]->SetMarkerSize(1.5);
-    //     h1_mult_random[i]->SetMarkerColor(kAzure-2);
-    //     h1_mult_random[i]->SetLineColor(kAzure-2);
-    //     h1_mult_random[i]->SetMarkerStyle(kFullSquare);
-    //     h1_mult_random[i]->Draw("P SAME");
-    //     leg->AddEntry(h1_mult_random[i], "Multiplicity", "pe");
-    
-    //     h1_sub1_random[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_sub1_random[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_sub1_random[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_sub1_random[i]->SetMarkerSize(1.5);
-    //     h1_sub1_random[i]->SetMarkerColor(kGreen+2);
-    //     h1_sub1_random[i]->SetMarkerStyle(kFullTriangleUp);
-    //     h1_sub1_random[i]->SetLineColor(kGreen+2);
-    //     h1_sub1_random[i]->Draw("P SAME");
-    //     // leg->AddEntry(h1_sub1_random[i], Form("Iterative: #mu = %0.2f GeV, #sigma = %0.2f GeV", h1_sub1_random[i]->GetMean(), h1_sub1_random[i]->GetRMS()), "pe");
-    //     leg->AddEntry(h1_sub1_random[i], "Iterative", "pe");
-    //     leg->Draw("SAME");
-    //      // draw dashed vertical line at 0
-    //      TLine *line = new TLine(0, 1e-4, 0, 2e-1);
-    //      line->SetLineStyle(2);
-    //      line->SetLineWidth(2);
-    //      line->SetLineColor(kBlack);
-    //      line->Draw("SAME");
-    
-    //     std::vector<std::string> tags = {sPHENIX_Tag, "Randomized#kern[0.05]{#eta#phi}",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-    //     TLatex * tex = new TLatex();
-    //     tex->SetNDC();
-    //     tex->SetTextFont(42);
-    //     tex->SetTextSize(0.04);
-    //     float tx = 0.17;
-    //     float ty_start = 0.89;
-    //     for ( auto tag : tags ) {
-    //         tex->DrawLatex(tx, ty_start, tag.c_str());
-    //         ty_start -= 0.04;
-    //     }
-    //     c->SaveAs(Form("%s/area_mult_sub1_random_%d.pdf", outdir.c_str(), i));
-    
-    
-    //     delete c;
-    //     delete leg;
-    
-    // }
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    
-    
+
+
         c = new TCanvas("c", "c", 800, 800);
       
         gPad->SetLeftMargin(0.15);
@@ -6106,12 +4949,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
-    
-        leg = new TLegend(0.55,0.77,0.85,0.92);
+
+        leg = new TLegend(0.18,0.8,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
+        leg->SetTextSize(0.035);
        
         h1_area_random[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_area_random[i]->GetXaxis()->SetNdivisions(510);
@@ -6121,136 +4964,57 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         h1_area_random[i]->SetLineColor(kRed);
         h1_area_random[i]->SetMarkerStyle(kFullCircle);
         h1_area_random[i]->Draw("P");
-        leg->AddEntry(h1_area_random[i],"Area Method", "pe");
+        leg->AddEntry(h1_area_random[i], Form("Area: #mu=%0.2f, #sigma = %0.2f", h1_area_random[i]->GetMean(), h1_area_random[i]->GetRMS()), "pe");
       
         h1_mult_random[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_mult_random[i]->GetXaxis()->SetNdivisions(510);
-        h1_mult_random[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_mult_random[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_mult_random[i]->SetMarkerSize(1.5);
         h1_mult_random[i]->SetMarkerColor(kAzure-2);
         h1_mult_random[i]->SetLineColor(kAzure-2);
         h1_mult_random[i]->SetMarkerStyle(kFullSquare);
         h1_mult_random[i]->Draw("P SAME");
-        leg->AddEntry(h1_mult_random[i], "Multiplicity Method", "pe");
-    
+        leg->AddEntry(h1_mult_random[i], Form("Multiplicity: #mu=%0.2f, #sigma = %0.2f", h1_mult_random[i]->GetMean(), h1_mult_random[i]->GetRMS()), "pe");
+
         h1_sub1_random[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_sub1_random[i]->GetXaxis()->SetNdivisions(510);
-        h1_sub1_random[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_sub1_random[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_sub1_random[i]->SetMarkerSize(1.5);
         h1_sub1_random[i]->SetMarkerColor(kGreen+2);
         h1_sub1_random[i]->SetMarkerStyle(kFullTriangleUp);
         h1_sub1_random[i]->SetLineColor(kGreen+2);
         h1_sub1_random[i]->Draw("P SAME");
-        leg->AddEntry(h1_sub1_random[i], "Iterative Method", "pe");
-    
+        leg->AddEntry(h1_sub1_random[i], Form("Iterative: #mu=%0.2f, #sigma = %0.2f", h1_sub1_random[i]->GetMean(), h1_sub1_random[i]->GetRMS()), "pe");
+
         leg->Draw("SAME");
-        // std::vector<std::string> tags = {sPHENIX_Tag, "Basic Random Cones",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])),"#it{Randomized#kern[0.05]{#eta#phi}}"};
-    
+         // draw dashed vertical line at 0
+         TLine *line = new TLine(0, 1e-4, 0, 2e-1);
+         line->SetLineStyle(2);
+         line->SetLineWidth(2);
+         line->SetLineColor(kBlack);
+         line->Draw("SAME");
+
+        std::vector<std::string> tags = {sPHENIX_Tag, "Randomized #eta#phi",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
         TLatex * tex = new TLatex();
-    
-        // draw dashed vertical line at 0
-        TLine *line = new TLine(0, 1e-4, 0, 1e0);
-        line->SetLineStyle(2);
-        line->SetLineWidth(2);
-        line->SetLineColor(kBlack);
-        line->Draw("SAME");
-        
         tex->SetNDC();
         tex->SetTextFont(42);
-        tex->SetTextSize(0.04);
-        float tx = 0.17;
-        float ty_start = 0.89;
+        tex->SetTextSize(0.035);
+        float tx = 0.19;
+        float ty_start = 0.75;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.04;
         }
         c->SaveAs(Form("%s/area_mult_sub1_random_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_mult_sub1_random_%d.png", outdir.c_str(), i));
-    
-    
+
+
         delete c;
         delete leg;
-    
+
     }
-    // for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    
-    
-    //     c = new TCanvas("c", "c", 800, 800);
-      
-    //     gPad->SetLeftMargin(0.15);
-    //     gPad->SetRightMargin(0.05);
-    //     gPad->SetBottomMargin(0.15);
-    //     gPad->SetTopMargin(0.05);
-    //     gPad->SetLogy();
-    
-    //     leg = new TLegend(0.18,0.8,0.4,0.92);
-    //     leg->SetBorderSize(0);
-    //     leg->SetFillStyle(0);
-    //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
-       
-    //     h1_area_probe[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_area_probe[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_area_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_area_probe[i]->SetMarkerSize(1.5);
-    //     h1_area_probe[i]->SetMarkerColor(kRed);
-    //     h1_area_probe[i]->SetLineColor(kRed);
-    //     h1_area_probe[i]->SetMarkerStyle(kFullCircle);
-    //     h1_area_probe[i]->Draw("P");
-    //     leg->AddEntry(h1_area_probe[i], "Area", "pe");
-      
-    //     h1_mult_probe[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_mult_probe[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_mult_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_mult_probe[i]->SetMarkerSize(1.5);
-    //     h1_mult_probe[i]->SetMarkerColor(kAzure-2);
-    //     h1_mult_probe[i]->SetLineColor(kAzure-2);
-    //     h1_mult_probe[i]->SetMarkerStyle(kFullSquare);
-    //     h1_mult_probe[i]->Draw("P SAME");
-    //     // leg->AddEntry(h1_mult_probe[i], Form("Multiplicity: #mu = %0.2f GeV, #sigma = %0.2f GeV", h1_mult_probe[i]->GetMean(), h1_mult_probe[i]->GetRMS()), "pe");
-    //     leg->AddEntry(h1_mult_probe[i], "Multiplicity", "pe");
-    
-    //     h1_sub1_probe[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_sub1_probe[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_sub1_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_sub1_probe[i]->SetMarkerSize(1.5);
-    //     h1_sub1_probe[i]->SetMarkerColor(kGreen+2);
-    //     h1_sub1_probe[i]->SetMarkerStyle(kFullTriangleUp);
-    //     h1_sub1_probe[i]->SetLineColor(kGreen+2);
-    //     h1_sub1_probe[i]->Draw("P SAME");
-    //     // leg->AddEntry(h1_sub1_probe[i], Form("Iterative: #mu = %0.2f GeV, #sigma = %0.2f GeV", h1_sub1_probe[i]->GetMean(), h1_sub1_probe[i]->GetRMS()), "pe");
-    //     leg->AddEntry(h1_sub1_probe[i], "Iterative", "pe");
-    //     leg->Draw("SAME");
-    
-    //      // draw dashed vertical line at 0
-    //      TLine *line = new TLine(0, 1e-4, 0, 2e-1);
-    //      line->SetLineStyle(2);
-    //      line->SetLineWidth(2);
-    //      line->SetLineColor(kBlack);
-    //      line->Draw("SAME");
-    
-    //     std::vector<std::string> tags = {sPHENIX_Tag, "High E_{T} Probe",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-    //     TLatex * tex = new TLatex();
-    //     tex->SetNDC();
-    //     tex->SetTextFont(42);
-    //     tex->SetTextSize(0.04);
-    //     float tx = 0.17;
-    //     float ty_start = 0.75;
-    //     for ( auto tag : tags ) {
-    //         tex->DrawLatex(tx, ty_start, tag.c_str());
-    //         ty_start -= 0.04;
-    //     }
-    //     c->SaveAs(Form("%s/area_mult_sub1_probe_%d.pdf", outdir.c_str(), i));
-    
-    
-    //     delete c;
-    //     delete leg;
-    
-    // }
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    
-    
+
+
         c = new TCanvas("c", "c", 800, 800);
       
         gPad->SetLeftMargin(0.15);
@@ -6258,12 +5022,12 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
-    
-        leg = new TLegend(0.55,0.77,0.85,0.92);
+
+        leg = new TLegend(0.18,0.8,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
+        leg->SetTextSize(0.035);
        
         h1_area_probe[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_area_probe[i]->GetXaxis()->SetNdivisions(510);
@@ -6273,136 +5037,58 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         h1_area_probe[i]->SetLineColor(kRed);
         h1_area_probe[i]->SetMarkerStyle(kFullCircle);
         h1_area_probe[i]->Draw("P");
-        leg->AddEntry(h1_area_probe[i],"Area Method", "pe");
+        leg->AddEntry(h1_area_probe[i], Form("Area: #mu=%0.2f, #sigma = %0.2f", h1_area_probe[i]->GetMean(), h1_area_probe[i]->GetRMS()), "pe");
       
         h1_mult_probe[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_mult_probe[i]->GetXaxis()->SetNdivisions(510);
-        h1_mult_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_mult_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_mult_probe[i]->SetMarkerSize(1.5);
         h1_mult_probe[i]->SetMarkerColor(kAzure-2);
         h1_mult_probe[i]->SetLineColor(kAzure-2);
         h1_mult_probe[i]->SetMarkerStyle(kFullSquare);
         h1_mult_probe[i]->Draw("P SAME");
-        leg->AddEntry(h1_mult_probe[i], "Multiplicity Method", "pe");
-    
+        leg->AddEntry(h1_mult_probe[i], Form("Multiplicity: #mu=%0.2f, #sigma = %0.2f", h1_mult_probe[i]->GetMean(), h1_mult_probe[i]->GetRMS()), "pe");
+
         h1_sub1_probe[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_sub1_probe[i]->GetXaxis()->SetNdivisions(510);
-        h1_sub1_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_sub1_probe[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
         h1_sub1_probe[i]->SetMarkerSize(1.5);
         h1_sub1_probe[i]->SetMarkerColor(kGreen+2);
         h1_sub1_probe[i]->SetMarkerStyle(kFullTriangleUp);
         h1_sub1_probe[i]->SetLineColor(kGreen+2);
         h1_sub1_probe[i]->Draw("P SAME");
-        leg->AddEntry(h1_sub1_probe[i], "Iterative Method", "pe");
-    
+        leg->AddEntry(h1_sub1_probe[i], Form("Iterative: #mu=%0.2f, #sigma = %0.2f", h1_sub1_probe[i]->GetMean(), h1_sub1_probe[i]->GetRMS()), "pe");
+
         leg->Draw("SAME");
-        // std::vector<std::string> tags = {sPHENIX_Tag, "Basic Random Cones",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])),"#it{High E_{T} Probe}"};
-    
+
+         // draw dashed vertical line at 0
+         TLine *line = new TLine(0, 1e-4, 0, 2e-1);
+         line->SetLineStyle(2);
+         line->SetLineWidth(2);
+         line->SetLineColor(kBlack);
+         line->Draw("SAME");
+
+        std::vector<std::string> tags = {sPHENIX_Tag, "E_{T}^{probe} = 30 GeV",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
         TLatex * tex = new TLatex();
-    
-        // draw dashed vertical line at 0
-        TLine *line = new TLine(0, 1e-4, 0, 1e0);
-        line->SetLineStyle(2);
-        line->SetLineWidth(2);
-        line->SetLineColor(kBlack);
-        line->Draw("SAME");
-        
         tex->SetNDC();
         tex->SetTextFont(42);
-        tex->SetTextSize(0.04);
-        float tx = 0.17;
-        float ty_start = 0.89;
+        tex->SetTextSize(0.035);
+        float tx = 0.19;
+        float ty_start = 0.75;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.04;
         }
         c->SaveAs(Form("%s/area_mult_sub1_probe_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_mult_sub1_probe_%d.png", outdir.c_str(), i));
-    
-    
+
+
         delete c;
         delete leg;
-    
+
     }
-    // for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    
-    
-    //     c = new TCanvas("c", "c", 800, 800);
-      
-    //     gPad->SetLeftMargin(0.15);
-    //     gPad->SetRightMargin(0.05);
-    //     gPad->SetBottomMargin(0.15);
-    //     gPad->SetTopMargin(0.05);
-    //     gPad->SetLogy();
-    
-    //     leg = new TLegend(0.18,0.8,0.4,0.92);
-    //     leg->SetBorderSize(0);
-    //     leg->SetFillStyle(0);
-    //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
-       
-    //     h1_area_embed[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_area_embed[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_area_embed[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_area_embed[i]->SetMarkerSize(1.5);
-    //     h1_area_embed[i]->SetMarkerColor(kRed);
-    //     h1_area_embed[i]->SetLineColor(kRed);
-    //     h1_area_embed[i]->SetMarkerStyle(kFullCircle);
-    //     h1_area_embed[i]->Draw("P");
-    //     // leg->AddEntry(h1_area_embed[i], Form("Area: #mu = %0.2f GeV, #sigma = %0.2f GeV", h1_area_embed[i]->GetMean(), h1_area_embed[i]->GetRMS()), "pe");
-    //     leg->AddEntry(h1_area_embed[i], "Area", "pe");
-    
-    //     h1_mult_embed[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_mult_embed[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_mult_embed[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_mult_embed[i]->SetMarkerSize(1.5);
-    //     h1_mult_embed[i]->SetMarkerColor(kAzure-2);
-    //     h1_mult_embed[i]->SetLineColor(kAzure-2);
-    //     h1_mult_embed[i]->SetMarkerStyle(kFullSquare);
-    //     h1_mult_embed[i]->Draw("P SAME");
-    //     // leg->AddEntry(h1_mult_embed[i], Form("Multiplicity: #mu = 
-    //     // %0.2f GeV, #sigma = %0.2f GeV", h1_mult_embed[i]->GetMean(), h1_mult_embed[i]->GetRMS()), "pe");
-    //     leg->AddEntry(h1_mult_embed[i], "Multiplicity", "pe");
-    //     h1_sub1_embed[i]->GetXaxis()->SetRangeUser(-30, 30);
-    //     h1_sub1_embed[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_sub1_embed[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
-    //     h1_sub1_embed[i]->SetMarkerSize(1.5);
-    //     h1_sub1_embed[i]->SetMarkerColor(kGreen+2);
-    //     h1_sub1_embed[i]->SetMarkerStyle(kFullTriangleUp);
-    //     h1_sub1_embed[i]->SetLineColor(kGreen+2);
-    //     h1_sub1_embed[i]->Draw("P SAME");
-    //     // leg->AddEntry(h1_sub1_embed[i], Form("Iterative: #mu = %0.2f GeV, #sigma = %0.2f GeV", h1_sub1_embed[i]->GetMean(), h1_sub1_embed[i]->GetRMS()), "pe");
-    //     leg->AddEntry(h1_sub1_embed[i], "Iterative", "pe");
-    //     leg->Draw("SAME");  
-    
-    //      // draw dashed vertical line at 0
-    //      TLine *line = new TLine(0, 1e-3, 0, 2e-1);
-    //      line->SetLineStyle(2);
-    //      line->SetLineWidth(2);
-    //      line->SetLineColor(kBlack);
-    //      line->Draw("SAME");
-    //     std::vector<std::string> tags = {sPHENIX_Tag, "Embedded PYTHIA",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-    //     TLatex * tex = new TLatex();
-    //     tex->SetNDC();
-    //     tex->SetTextFont(42);
-    //     tex->SetTextSize(0.04);
-    //     float tx = 0.17;
-    //     float ty_start = 0.75;
-    //     for ( auto tag : tags ) {
-    //         tex->DrawLatex(tx, ty_start, tag.c_str());
-    //         ty_start -= 0.04;
-    //     }
-    //     c->SaveAs(Form("%s/area_mult_sub1_embed_%d.pdf", outdir.c_str(), i));
-    
-    
-    //     delete c;
-    //     delete leg;
-    
-    // }
     for ( int i = 0; i < N_X_CENT_BINS; ++i ) {
-    
-    
+
+
         c = new TCanvas("c", "c", 800, 800);
       
         gPad->SetLeftMargin(0.15);
@@ -6410,78 +5096,70 @@ void DeltaPlots(const std::string input_file_basic, const std::string input_file
         gPad->SetBottomMargin(0.15);
         gPad->SetTopMargin(0.05);
         gPad->SetLogy();
-    
-        leg = new TLegend(0.55,0.77,0.85,0.92);
+
+        leg = new TLegend(0.18,0.8,0.4,0.92);
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
+        leg->SetTextSize(0.035);
        
-        h1_area_embed[i]->GetXaxis()->SetRangeUser(-30, 30);
+        h1_area_embed[i]->GetXaxis()->SetRangeUser(-40, 40);
         h1_area_embed[i]->GetXaxis()->SetNdivisions(510);
-        h1_area_embed[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_area_embed[i]->GetYaxis()->SetRangeUser(1e-3, 1e0);
         h1_area_embed[i]->SetMarkerSize(1.5);
         h1_area_embed[i]->SetMarkerColor(kRed);
         h1_area_embed[i]->SetLineColor(kRed);
         h1_area_embed[i]->SetMarkerStyle(kFullCircle);
         h1_area_embed[i]->Draw("P");
-        leg->AddEntry(h1_area_embed[i],"Area Method", "pe");
+        leg->AddEntry(h1_area_embed[i], Form("Area: #mu=%0.2f, #sigma = %0.2f", h1_area_embed[i]->GetMean(), h1_area_embed[i]->GetRMS()), "pe");
       
         h1_mult_embed[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_mult_embed[i]->GetXaxis()->SetNdivisions(510);
-        h1_mult_embed[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_mult_embed[i]->GetYaxis()->SetRangeUser(1e-3, 1.9e1);
         h1_mult_embed[i]->SetMarkerSize(1.5);
         h1_mult_embed[i]->SetMarkerColor(kAzure-2);
         h1_mult_embed[i]->SetLineColor(kAzure-2);
         h1_mult_embed[i]->SetMarkerStyle(kFullSquare);
         h1_mult_embed[i]->Draw("P SAME");
-        leg->AddEntry(h1_mult_embed[i], "Multiplicity Method", "pe");
-    
+        leg->AddEntry(h1_mult_embed[i], Form("Multiplicity: #mu=%0.2f, #sigma = %0.2f", h1_mult_embed[i]->GetMean(), h1_mult_embed[i]->GetRMS()), "pe");
+
         h1_sub1_embed[i]->GetXaxis()->SetRangeUser(-30, 30);
         h1_sub1_embed[i]->GetXaxis()->SetNdivisions(510);
-        h1_sub1_embed[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+        h1_sub1_embed[i]->GetYaxis()->SetRangeUser(1e-3, 1.9e1);
         h1_sub1_embed[i]->SetMarkerSize(1.5);
         h1_sub1_embed[i]->SetMarkerColor(kGreen+2);
         h1_sub1_embed[i]->SetMarkerStyle(kFullTriangleUp);
         h1_sub1_embed[i]->SetLineColor(kGreen+2);
         h1_sub1_embed[i]->Draw("P SAME");
-        leg->AddEntry(h1_sub1_embed[i], "Iterative Method", "pe");
-    
+        leg->AddEntry(h1_sub1_embed[i], Form("Iterative: #mu=%0.2f, #sigma = %0.2f", h1_sub1_embed[i]->GetMean(), h1_sub1_embed[i]->GetRMS()), "pe");
+
         leg->Draw("SAME");
-        // std::vector<std::string> tags = {sPHENIX_Tag, "Basic Random Cones",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
-        std::vector<std::string> tags = {sPHENIX_Tag,"Au+Au#kern[0.05]{#sqrt{s_{NN}} = 200 GeV}" ,Form("%d-%d%% Central", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])),"#it{Embedded Jets}"};
-    
+
+         // draw dashed vertical line at 0
+         TLine *line = new TLine(0, 1e-3, 0, 2e-1);
+         line->SetLineStyle(2);
+         line->SetLineWidth(2);
+         line->SetLineColor(kBlack);
+         line->Draw("SAME");
+        std::vector<std::string> tags = {sPHENIX_Tag, "Embedded PYTHIA",Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1]))};
         TLatex * tex = new TLatex();
-    
-        // draw dashed vertical line at 0
-        TLine *line = new TLine(0, 1e-4, 0, 1e0);
-        line->SetLineStyle(2);
-        line->SetLineWidth(2);
-        line->SetLineColor(kBlack);
-        line->Draw("SAME");
-        
         tex->SetNDC();
         tex->SetTextFont(42);
-        tex->SetTextSize(0.04);
-        float tx = 0.17;
-        float ty_start = 0.89;
+        tex->SetTextSize(0.035);
+        float tx = 0.19;
+        float ty_start = 0.75;
         for ( auto tag : tags ) {
             tex->DrawLatex(tx, ty_start, tag.c_str());
             ty_start -= 0.04;
         }
         c->SaveAs(Form("%s/area_mult_sub1_embed_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_mult_sub1_embed_%d.png", outdir.c_str(), i));
-    
-    
+
+
         delete c;
         delete leg;
-    
+
     }
 
-
-
-
-   
     std::cout << "\\begin{table}[hbt!]" << std::endl;
     std::cout << " \\begin{center}" << std::endl;
     std::cout << "  \\begin{tabular}{|c|c|c|c|c|}" << std::endl;
@@ -6670,7 +5348,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
         for ( auto h1 : h1s ) {
             h1->GetXaxis()->SetNdivisions(505);
             h1->GetYaxis()->SetNdivisions(505);
-            h1->GetXaxis()->SetTitle("#delta E_{T}^{Raw} [GeV]");
+            h1->GetXaxis()->SetTitle("#delta E_{T,Uncorr.} [GeV]");
             h1->GetYaxis()->SetTitle("Probability Density [A.U.]");
             h1->Scale(1./h1->Integral());
         }
@@ -6744,13 +5422,13 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
         leg->SetBorderSize(0);
         leg->SetFillStyle(0);
         leg->SetNColumns(1);
-        leg->SetTextSize(0.04);
+        leg->SetTextSize(0.035);
 
         TLegend * leg2 = new TLegend(0.47,0.2,0.85,0.3);
         leg2->SetBorderSize(0);
         leg2->SetFillStyle(0);
         leg2->SetNColumns(1);
-        leg2->SetTextSize(0.04);
+        leg2->SetTextSize(0.035);
 
         TH1F * h1_a_basic_todraw = (TH1F*)h1_area_basic[i]->Clone(Form("h1_a_basic_todraw_%d", i));
         // take the ratio of the hist to the fit
@@ -6776,7 +5454,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
         h1_a_random_todraw->GetYaxis()->SetRangeUser(1e-1, 1e1);
         h1_a_random_todraw->GetXaxis()->SetNdivisions(510);
         h1_a_random_todraw->Draw("P SAME");
-        leg->AddEntry(h1_a_random_todraw, Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
+        leg->AddEntry(h1_a_random_todraw, Form("Randomized #eta#phi: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
 
 
 
@@ -6784,7 +5462,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
         std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Area"};
         TLatex * tex = new TLatex();
         tex->SetNDC();
-        tex->SetTextSize(0.04);
+        tex->SetTextSize(0.035);
         float tx = 0.19;
         float ty_start = 0.8;
         for ( auto tag : tags ) {
@@ -6793,7 +5471,6 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
         }
         leg->Draw("SAME");
         c->SaveAs(Form("%s/area_basic_%d.pdf", outdir.c_str(), i));
-        c->SaveAs(Form("%s/area_basic_%d.png", outdir.c_str(), i));
 
         delete c;
         delete leg;
@@ -6875,7 +5552,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     fit_gamma2->SetParameter(0, a_a_basic);
     //     fit_gamma2->SetParameter(1, ab_a_basic);
     //     fit_gamma2->SetParameter(2, ap_a_basic);
-    //     // std::cout << "m = " << m << ", s = " << s << std::endl;
+    //     std::cout << "m = " << m << ", s = " << s << std::endl;
     //     // fit_gamma->SetParLimits(0, 
     //     h1_a_random->Fit(fit_gamma2, "QR", "", m-3*s, m+3*s);
     //     a_a_basic = fit_gamma2->GetParameter(0);
@@ -6894,19 +5571,19 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     leg->SetBorderSize(0);
     //     leg->SetFillStyle(0);
     //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
+    //     leg->SetTextSize(0.035);
       
     //     // TLegend * leg2 = new TLegend(0.6,0.8,0.8,0.92);
     //     TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
     //     leg2->SetBorderSize(0);
     //     leg2->SetFillStyle(0);
     //     leg2->SetNColumns(1);
-    //     leg2->SetTextSize(0.04);
+    //     leg2->SetTextSize(0.035);
       
        
     //     h1_mult_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
     //     h1_mult_basic[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+    //     h1_mult_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
     //     h1_mult_basic[i]->SetMarkerSize(1.5);
     //     h1_mult_basic[i]->SetMarkerColor(kAzure-2);
     //     h1_mult_basic[i]->SetLineColor(kAzure-2);
@@ -6924,7 +5601,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     h1_mult_random[i]->SetMarkerColor(kRed);
     //     h1_mult_random[i]->SetLineColor(kRed);
     //     h1_mult_random[i]->Draw(" P SAME");
-    //     leg->AddEntry(h1_mult_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
+    //     leg->AddEntry(h1_mult_random[i], Form("Randomized #eta#phi: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
       
     //     fit_gaus2->SetParameter(1, mu_lhs_a_random);
     //     fit_gaus2->SetParameter(2, sigma_lhs_a_random);
@@ -6937,7 +5614,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     h1_a_probe->SetMarkerColor(kGreen+2);
     //     h1_a_probe->SetLineColor(kGreen+2);
     //     h1_a_probe->Draw("P SAME");
-    //     leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
+    //     leg->AddEntry(h1_a_probe, Form("E_{T}^{probe} = 30 GeV: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
       
         
     //     fit_gamma2->SetLineColor(kBlack);
@@ -6961,7 +5638,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Multiplicity"};
     //     TLatex * tex = new TLatex();
     //     tex->SetNDC();
-    //     tex->SetTextSize(0.04);
+    //     tex->SetTextSize(0.035);
     //     float tx = 0.19;
     //     float ty_start = 0.6;
     //     for ( auto tag : tags ) {
@@ -7043,7 +5720,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     fit_gamma2->SetParameter(0, a_a_basic);
     //     fit_gamma2->SetParameter(1, ab_a_basic);
     //     fit_gamma2->SetParameter(2, ap_a_basic);
-    //     // std::cout << "m = " << m << ", s = " << s << std::endl;
+    //     std::cout << "m = " << m << ", s = " << s << std::endl;
     //     // fit_gamma->SetParLimits(0, 
     //     h1_a_random->Fit(fit_gamma2, "QR", "", m-3*s, m+3*s);
     //     a_a_basic = fit_gamma2->GetParameter(0);
@@ -7062,19 +5739,19 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     leg->SetBorderSize(0);
     //     leg->SetFillStyle(0);
     //     leg->SetNColumns(1);
-    //     leg->SetTextSize(0.04);
+    //     leg->SetTextSize(0.035);
       
     //     // TLegend * leg2 = new TLegend(0.6,0.8,0.8,0.92);
     //     TLegend * leg2 = new TLegend(0.17,0.66,0.42,0.8);
     //     leg2->SetBorderSize(0);
     //     leg2->SetFillStyle(0);
     //     leg2->SetNColumns(1);
-    //     leg2->SetTextSize(0.04);
+    //     leg2->SetTextSize(0.035);
       
        
     //     h1_sub1_basic[i]->GetXaxis()->SetRangeUser(-30, 30);
     //     h1_sub1_basic[i]->GetXaxis()->SetNdivisions(510);
-    //     h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1e0);
+    //     h1_sub1_basic[i]->GetYaxis()->SetRangeUser(1e-4, 1.9e1);
     //     h1_sub1_basic[i]->SetMarkerSize(1.5);
     //     h1_sub1_basic[i]->SetMarkerColor(kAzure-2);
     //     h1_sub1_basic[i]->SetLineColor(kAzure-2);
@@ -7092,7 +5769,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     h1_sub1_random[i]->SetMarkerColor(kRed);
     //     h1_sub1_random[i]->SetLineColor(kRed);
     //     h1_sub1_random[i]->Draw(" P SAME");
-    //     leg->AddEntry(h1_sub1_random[i], Form("Randomized#kern[0.05]{#eta#phi}: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
+    //     leg->AddEntry(h1_sub1_random[i], Form("Randomized #eta#phi: #mu = %0.2f, #sigma = %0.2f", mean_a_random, rms_a_random), "pe");
       
     //     fit_gaus2->SetParameter(1, mu_lhs_a_random);
     //     fit_gaus2->SetParameter(2, sigma_lhs_a_random);
@@ -7105,7 +5782,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     h1_a_probe->SetMarkerColor(kGreen+2);
     //     h1_a_probe->SetLineColor(kGreen+2);
     //     h1_a_probe->Draw("P SAME");
-    //     leg->AddEntry(h1_a_probe, Form("High E_{T} Probe: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
+    //     leg->AddEntry(h1_a_probe, Form("E_{T}^{probe} = 30 GeV: #mu = %0.2f, #sigma = %0.2f", mean_a_probe, rms_a_probe), "pe");
       
         
     //     fit_gamma2->SetLineColor(kBlack);
@@ -7129,7 +5806,7 @@ void DeltaPlotsXcheck(const std::string input_file_basic, const std::string inpu
     //     std::vector<std::string> tags = {sPHENIX_Tag,Form("Au+Au %d-%d%%", int(X_CENT_BINS[i]), int(X_CENT_BINS[i+1])), "Iterative"};
     //     TLatex * tex = new TLatex();
     //     tex->SetNDC();
-    //     tex->SetTextSize(0.04);
+    //     tex->SetTextSize(0.035);
     //     float tx = 0.19;
     //     float ty_start = 0.6;
     //     for ( auto tag : tags ) {

@@ -1,33 +1,44 @@
-#include <G4_Centrality.C>
-#include <G4_Global.C>
 #include <GlobalVariables.C>
-#include <Calo_Calib.C> 
 
+#include "PPG04_Calo_Calib.C"
 #include "PPG04.C"
 
-// coresoftware headers
-#include <ffamodules/FlagHandler.h>
-#include <ffamodules/HeadReco.h>
-#include <ffamodules/SyncReco.h>
 #include <ffamodules/CDBInterface.h>
 
-// phool headers
 #include <phool/recoConsts.h>
 #include <phool/PHRandomSeed.h>
 
-// fun4all headers
+#include <phparameter/PHParameterUtils.h>
+
 #include <fun4all/InputFileHandler.h>
 #include <fun4all/Fun4AllDstInputManager.h>
+#include <fun4all/Fun4AllNoSyncDstInputManager.h>
 #include <fun4all/Fun4AllServer.h>
 #include <fun4all/Fun4AllUtils.h>
+#include <fun4all/Fun4AllSyncManager.h>
 
 #include <mbd/MbdReco.h>
 
-// load libraries
+#include <centrality/CentralityReco.h>
+#include <g4centrality/PHG4CentralityReco.h>
+
+#include <calotrigger/MinimumBiasClassifier.h>
+
+#include <globalvertex/GlobalVertexReco.h>
+
+#include <zdcinfo/ZdcReco.h>
+
+
 R__LOAD_LIBRARY( libfun4all.so )
 R__LOAD_LIBRARY( libffamodules.so )
 R__LOAD_LIBRARY( libmbd.so )
+R__LOAD_LIBRARY( libg4mbd.so )
 R__LOAD_LIBRARY( libcalotrigger.so )
+R__LOAD_LIBRARY( libg4centrality.so )
+R__LOAD_LIBRARY( libcentrality.so )
+R__LOAD_LIBRARY( libglobalvertex.so )
+R__LOAD_LIBRARY( libg4vertex.so )
+R__LOAD_LIBRARY( libzdcinfo.so )
 
 void GetRunSegment( const std::string & filelist, int & run_number, int & run_segment ) 
 {
@@ -44,7 +55,7 @@ void GetRunSegment( const std::string & filelist, int & run_number, int & run_se
 std::string GetOutputFile( const std::string & mode,
                     const std::string & prodTag,
                     const int timeStamp,
-                    const int doRandomEtaPhi,
+                    const int doRunMode,
                     const std::string & outdir,
                     const std::string & dst_input_list,
                     const std::string & prefix = "" )
@@ -59,7 +70,7 @@ std::string GetOutputFile( const std::string & mode,
         if ( prefix.back( ) != '-' ) { oss << "-"; }
     }
     oss << mode << "-";
-    if ( doRandomEtaPhi == 1 ) { oss << "RandEtaPhi-"; }
+    if ( doRunMode == 1 ) { oss << "RandEtaPhi-"; }
     oss << prodTag << "-" << std::setw( 6 ) << std::setfill( '0' ) << timeStamp << "_"
         << std::setw( 10 ) << std::setfill( '0' ) << run_number 
         << "-" << std::setw( 6 ) << std::setfill( '0' ) << run_segment << ".root";
@@ -68,24 +79,20 @@ std::string GetOutputFile( const std::string & mode,
 }
 
 void Fun4All_PPG04( 
-    const std::string & mode = "HIJING",
-    const std::string & prodTag = "ProdA_2023",
-    const int timeStamp = 23745,
-    const int nEvents = 10,
-    const int doRandomEtaPhi = 0,
+    const std::string & mode = "DATA",
+    const std::string & prodTag = "2024p009",
+    const int timeStamp = 54912,
+    const int nEvents = 100,
+    const int doRunMode = 0,
     const std::string & outdir = "./",
-    const std::string & dst_input_list0 = "dst_calo_cluster.list",
-    const std::string & dst_input_list1 = "dst_calo_waveform.list",
-    const std::string & dst_input_list2 = "dst_mbd_epd.list"
+    const std::string & dst_input_list0 = "/sphenix/user/tmengel/UE-AuAu-PPG04/condor/production/dsts/DATA/2024p009/BASIC/ZVTX_BIN_all/PPG04_DATA_DSTS_prod.ana450_cdb.2024p009_build.-0000054912-000411.root"
 )
 {
 
     std::cout << "Starting Fun4All_PPG04" << std::endl;
+    
     // Enable
     Enable::VERBOSITY = 0;
-    Enable::CENTRALITY_VERBOSITY = 0;
-    Enable::DSTOUT = false;
-    // Enable::CDB = true;
 
     // CDB
     CDB::global_tag = prodTag;
@@ -96,52 +103,75 @@ void Fun4All_PPG04(
     PPG04::VERBOSITY = 1;
     PPG04::isDATA = ( mode == "DATA" );
     PPG04::isMC = !PPG04::isDATA;
-    PPG04::isTRUTHJETS = false;
+
     PPG04::PPG04RandomSeed = PHRandomSeed();
-    // analysis writer
-    PPG04::doAnaWriter = true; 
-    PPG04Output::outfile = GetOutputFile( mode, prodTag, timeStamp, doRandomEtaPhi, outdir, dst_input_list0 );
-    PPG04Output::writeMBD = true;
-    PPG04Output::writeZVtx = true;
-    PPG04Output::writeCent = true;
-    PPG04Output::writeIterBackground = true;
-    PPG04Output::doFullWindow = true;
-    PPG04Output::doCemcOnlyWindow = true;    
-      // calo spy
-    PPG04::doCaloSpy = true;
-    PPG04CaloSpy::outfile = GetOutputFile( mode, prodTag, timeStamp, doRandomEtaPhi, outdir, dst_input_list0 , "CALOSPY-");
-    PPG04CaloSpy::Normalize = false;
+
+    // calo manipulation
+    PPG04::doCaloManip = ( doRunMode == 1 );
+    CaloManip::doTowerRandomizer = PPG04::doCaloManip;
+    CaloManip::doMinEMCalEnergy = false;
+
+    PPG04::doEmbedding =  false;
+    PPG04::isTRUTHJETS = PPG04::doEmbedding && true;
+    // Embdedding::doSim = PPG04::doEmbedding && false;
+    // Embdedding::doTruth = PPG04::doEmbedding;
+    // Embdedding::SrcTOP = "TOPData";
+    // Embdedding::TgtTOP = "TOP";
+    // Embdedding::TruthJetNode = "AntiKt_Truth_r04";
+
+    // calo calib settings
+    CALOCALIB::isData = PPG04::isDATA;
+    CALOCALIB::is2024 = true;
+    CALOCALIB::cemc_software_zs = 60;
+    CALOCALIB::ohcal_software_zs = 30;
+    CALOCALIB::ihcal_software_zs = 30;
+    CALOCALIB::CalibVersion = 1;
+
+
     // event selection
     PPG04::doEventSelect = true;
     EventSelect::doZVrtxCut = true;
-    EventSelect::doMinBiasCut = true;
-    EventSelect::doTowerChi2Cut = true;
+    EventSelect::doMinBiasCut = !PPG04::isMC;
+    EventSelect::doTowerChi2Cut = false;
     EventSelect::ZVrtxCutRange = {20,-20};
-    // calo manipulation
-    PPG04::doCaloManip = true;
-    CaloManip::doMinEMCalEnergy = false;
-    // CaloManip::MinEMCalEnergy = 0.05; // nominal
-    CaloManip::MinEMCalEnergy = 0.150; // for 0.15 GeV
-    CaloManip::doTowerRandomizer = ( doRandomEtaPhi == 1 );
+    
     // background subtraction
     PPG04::doIterBackground = true;
     PPG04::doAreaRho = true;
     PPG04::doMultRho = true;
+
     // random cones
-    PPG04::doRandomCones = true;
+    PPG04::doRandomCones = !PPG04::doEmbedding;
+    RandomCones::ConeRadius = 0.4;
+    RandomCones::ConeAbsEta = 0.6;
+    RandomCones::ConeMaskedThreshold = 0.00;
+
+    // probes
+    PPG04::doJetProbe = false;// !PPG04::doEmbedding;
+
     // calo windows
-    PPG04::doCaloWindows = true;
+    PPG04::doCaloWindows = false;//  !PPG04::doEmbedding;
+   
+    // analysis writer
+    PPG04::doAnaWriter = true; 
+    PPG04Output::outfile = GetOutputFile( mode, prodTag, timeStamp, doRunMode, outdir, dst_input_list0 );
+    PPG04Output::writeMBD = true;
+    PPG04Output::writeZVtx = true;
+    PPG04Output::writeCent = true;
+    PPG04Output::writeIterBackground = true;
+    PPG04Output::doFullWindow = PPG04::doCaloWindows && false;
+    PPG04Output::doCemcOnlyWindow = PPG04::doCaloWindows && false;
+
+    // calo spy
+    PPG04::doCaloSpy = false;
+    PPG04CaloSpy::outfile = GetOutputFile( mode, prodTag, timeStamp, doRunMode, outdir, dst_input_list0 , "CALOSPY-");
+    PPG04CaloSpy::Normalize = false;
     
     ///---------------------------------------------------------------------------------------------------------------------
     // Set up F4A
-    auto se = Fun4AllServer::instance( );
+    auto se = Fun4AllServer::instance();
     se -> Verbosity( Enable::VERBOSITY );
 
-    std::vector<std::string> dst_files = { dst_input_list0 };
-    if ( !PPG04::isDATA ) {
-        dst_files.push_back( dst_input_list1 );
-        dst_files.push_back( dst_input_list2 );
-    }
 
     // set up recoConsts
     auto rc = recoConsts::instance();
@@ -150,32 +180,75 @@ void Fun4All_PPG04(
     rc -> set_uint64Flag( "TIMESTAMP", CDB::timestamp );
     rc -> set_IntFlag( "PPG04RANDOMSEED", PPG04::PPG04RandomSeed );
 
-    // auto sync = new SyncReco( );
-    // se -> registerSubsystem( sync );
-    // auto head = new HeadReco( );
-    // se -> registerSubsystem( head );
-    // auto flag = new FlagHandler( );
-    // se -> registerSubsystem( flag );
+    std::vector<std::string> dst_files = { dst_input_list0  };
+
 
     // read in filelists
     for ( unsigned int idx = 0; idx < dst_files.size( ); idx++ ) {
+
         auto input = new Fun4AllDstInputManager( "DSTINPUT_" + std::to_string( idx ) );
-        input -> AddListFile( dst_files[ idx ] );
-        input -> Verbosity( 0 );
+        input -> AddFile( dst_files[ idx ] );
+        input -> Verbosity( 1 );
         se -> registerInputManager( input );
+
     }
 
-    ///---------------------------------------------------------------------------------------------------------------------
-    // Run4All
-    Global_Reco();
-    Process_Calo_Calib();
-    if ( !PPG04::isDATA  ) { Centrality(); } 
-    InitPPG04();
-    RunPPG04();
-    se -> run( nEvents );
+    // if ( PPG04::isDATA ) {
+    //     FitTowers();
+    // }
 
-    ///---------------------------------------------------------------------------------------------------------------------
+    // CalibTowers();
+
+    // if ( PPG04::isDATA ) {
+     
+    //     auto mbdreco = new MbdReco();
+    //     se->registerSubsystem( mbdreco );
+    
+    // }
+
+    // auto gvertex = new GlobalVertexReco();
+    // se->registerSubsystem( gvertex );
+    
+    // if ( PPG04::isDATA ) {
+
+    //     auto zdcreco = new ZdcReco();
+    //     zdcreco->set_zdc1_cut(0.0);
+    //     zdcreco->set_zdc2_cut(0.0);
+    //     se->registerSubsystem( zdcreco );
+
+    //     auto mb = new MinimumBiasClassifier();
+    //     mb->Verbosity( Enable::VERBOSITY );
+    //     mb->setOverwriteScale("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_54912.root"); // will change run by run
+    //     mb->setOverwriteVtx("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_54912.root"); // will change run by run
+    //     se->registerSubsystem( mb );
+
+    //     auto cent = new CentralityReco();
+    //     cent->setOverwriteScale("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/scales/cdb_centrality_scale_54912.root"); // will change run by run
+    //     cent->setOverwriteVtx("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/vertexscales/cdb_centrality_vertex_scale_54912.root"); // will change run by run
+    //     cent->setOverwriteDivs("/sphenix/user/dlis/Projects/centrality/cdb/calibrations/divs/cdb_centrality_54912.root");
+    //     se->registerSubsystem( cent );
+    // }
+
+    if ( PPG04::isMC ) {
+
+        
+        auto cent = new PHG4CentralityReco();
+        cent->Verbosity(Enable::VERBOSITY);
+        if ( Enable::CDB ) {
+            PHParameterUtils::FillPHParametersFromCDB( cent->GetCalibrationParameters(),"CENTRALITY" );
+        } else {
+            cent->GetCalibrationParameters().ReadFromFile("centrality", "xml", 0, 0, string(getenv("CALIBRATIONROOT")) + string("/Centrality/"));
+        }
+        se->registerSubsystem( cent );
+    }
+      
+
+    // InitPPG04();
+    // RunPPG04();
+
+    se -> run( nEvents );
     se -> End();   
+
     std::cout << "Done!" << std::endl;
     gSystem -> Exit( 0 );
 }

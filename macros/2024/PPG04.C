@@ -426,7 +426,7 @@ void RunPPG04()
         se -> registerSubsystem( cwr );
     }
 
-    std::cout << "PPG04::Running output modules" << std::endl;
+    // std::cout << "PPG04::Running output modules" << std::endl;
     if ( PPG04::doCaloSpy ) {
         std::cout << "CaloSpy file: " << PPG04CaloSpy::outfile << std::endl;
         PPG04::CaloSpyHandler = new CaloSpy( PPG04CaloSpy::outfile );
